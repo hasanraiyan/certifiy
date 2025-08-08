@@ -21,7 +21,7 @@ export function Header() {
         {/* Desktop Links */}
         <div className="hidden md:flex items-center space-x-8 text-sm font-semibold text-foreground">
           <Link href="#features" className="hover:text-accent transition-colors">Features</Link>
-          <Link href="#pricing" className="hover:text-accent transition-colors">Pricing</Link>
+          <Link href="/pricing" className="hover:text-accent transition-colors">Pricing</Link>
           <Link href="/login" className="hover:text-accent transition-colors">Login</Link>
           <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-sm">
             <Link href="/signup">Start Free Test</Link>

@@ -1,148 +1,62 @@
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { PricingHeader } from '@/components/pricing/pricing-header';
+import { PricingSection } from '@/components/landing/pricing-section';
+import { FeatureComparison } from '@/components/pricing/feature-comparison';
+import { FAQSection } from '@/components/pricing/faq-section';
 
 export default function PricingPage() {
-  const plans = [
-    {
-      name: 'Free Tier',
-      price: '$0',
-      period: 'forever',
-      description: 'Perfect for getting started',
-      features: [
-        '50 practice questions',
-        'Basic progress tracking',
-        'Community support',
-        'Limited explanations'
-      ],
-      buttonText: 'Get Started Free',
-      buttonVariant: 'outline' as const,
-      popular: false
-    },
-    {
-      name: 'Pay-per-Test',
-      price: '$19',
-      period: 'per test',
-      description: 'Flexible option for focused practice',
-      features: [
-        'Full mock exam (180 questions)',
-        'Detailed explanations',
-        'Performance analytics',
-        'Domain-wise breakdown',
-        '30-day access'
-      ],
-      buttonText: 'Buy Single Test',
-      buttonVariant: 'default' as const,
-      popular: false
-    },
-    {
-      name: 'Premium Bundle',
-      price: '$99',
-      period: 'lifetime',
-      description: 'Complete PMP preparation package',
-      features: [
-        'Unlimited practice questions',
-        '10+ full mock exams',
-        'Advanced analytics',
-        'All question types',
-        'Priority support',
-        'Study guides & resources',
-        'Mobile app access'
-      ],
-      buttonText: 'Get Premium',
-      buttonVariant: 'default' as const,
-      popular: true
-    }
-  ];
-
   return (
-    <div className="min-h-screen bg-gray-50 py-16">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Choose Your Plan
-          </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Select the perfect plan for your PMP certification journey. 
-            All plans include our comprehensive question bank and detailed explanations.
-          </p>
-        </div>
+    <>
+      {/* Header */}
+      <header className="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-border">
+        <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
+          <a href="/" className="flex items-center space-x-2 text-xl font-bold text-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>Certify</span>
+          </a>
+          <div className="hidden md:flex items-center space-x-8 text-sm font-semibold text-foreground">
+            <a href="/#features" className="hover:text-accent transition-colors">Features</a>
+            <a href="/pricing" className="text-primary font-bold">Pricing</a>
+            <a href="/login" className="hover:text-accent transition-colors">Login</a>
+            <a href="/signup" className="bg-primary hover:bg-primary/90 text-white font-bold py-2.5 px-5 rounded-lg shadow-sm transition-all">
+              Start Free Test
+            </a>
+          </div>
+          {/* Mobile Menu Button Placeholder */}
+          <div className="md:hidden">
+            <button className="text-primary focus:outline-none">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />
+              </svg>
+            </button>
+          </div>
+        </nav>
+      </header>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {plans.map((plan, index) => (
-            <Card key={index} className={`relative ${plan.popular ? 'border-blue-500 shadow-lg' : ''}`}>
-              {plan.popular && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <span className="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium">
-                    Most Popular
-                  </span>
-                </div>
-              )}
-              
-              <CardHeader className="text-center">
-                <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                <CardDescription>{plan.description}</CardDescription>
-                <div className="mt-4">
-                  <span className="text-4xl font-bold">{plan.price}</span>
-                  <span className="text-gray-600">/{plan.period}</span>
-                </div>
-              </CardHeader>
+      {/* Main Content */}
+      <main>
+        <PricingHeader />
+        <PricingSection />
+        <FeatureComparison />
+        <FAQSection />
+      </main>
 
-              <CardContent>
-                <ul className="space-y-3">
-                  {plan.features.map((feature, featureIndex) => (
-                    <li key={featureIndex} className="flex items-center">
-                      <span className="text-green-500 mr-2">✓</span>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-
-              <CardFooter>
-                <Button 
-                  variant={plan.buttonVariant} 
-                  className="w-full" 
-                  size="lg"
-                  asChild
-                >
-                  <Link href="/signup">{plan.buttonText}</Link>
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
-
-        <div className="text-center mt-16">
-          <h2 className="text-2xl font-bold mb-4">All Plans Include</h2>
-          <div className="grid md:grid-cols-4 gap-6 max-w-4xl mx-auto">
-            <div className="text-center">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                <span className="text-xl">🔒</span>
-              </div>
-              <p className="font-medium">Secure Platform</p>
+      {/* Footer */}
+      <footer className="bg-white border-t border-border">
+        <div className="container mx-auto px-6 py-8">
+          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+            <div className="text-sm text-muted-foreground">
+              &copy; 2025 Certify. All Rights Reserved.
             </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                <span className="text-xl">📱</span>
-              </div>
-              <p className="font-medium">Mobile Friendly</p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                <span className="text-xl">⚡</span>
-              </div>
-              <p className="font-medium">Instant Access</p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                <span className="text-xl">🎯</span>
-              </div>
-              <p className="font-medium">Updated Content</p>
+            <div className="flex space-x-6 text-sm font-medium">
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">Privacy</a>
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">Terms</a>
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">Contact</a>
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </footer>
+    </>
   );
 }
