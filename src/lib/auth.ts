@@ -18,6 +18,18 @@ export interface AuthState {
 
 // Mock authentication functions - replace with real implementation
 export const getCurrentUser = async (): Promise<User | null> => {
+  // In development, check localStorage for dev auth state
+  if (process.env.NODE_ENV === 'development') {
+    try {
+      const savedUser = localStorage.getItem('dev-auth-user');
+      if (savedUser) {
+        return JSON.parse(savedUser);
+      }
+    } catch (error) {
+      console.error('Failed to parse dev auth user:', error);
+    }
+  }
+  
   // This would typically check JWT token, session, etc.
   return null;
 };
