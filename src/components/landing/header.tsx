@@ -3,13 +3,14 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { CheckCircle } from 'lucide-react';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { CheckCircle, Menu } from 'lucide-react';
 
 export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <header className="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-200">
+    <header className="bg-background/80 backdrop-blur-md sticky top-0 z-50 border-b">
       <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
         {/* Logo */}
         <Link href="/" className="flex items-center space-x-2 text-xl font-bold text-primary">
@@ -18,41 +19,58 @@ export function Header() {
         </Link>
 
         {/* Desktop Links */}
-        <div className="hidden md:flex items-center space-x-8 text-sm font-semibold text-gray-900">
+        <div className="hidden md:flex items-center space-x-8 text-sm font-semibold text-foreground">
           <Link href="#features" className="hover:text-accent transition-colors">Features</Link>
           <Link href="#pricing" className="hover:text-accent transition-colors">Pricing</Link>
           <Link href="/login" className="hover:text-accent transition-colors">Login</Link>
-          <Link href="/signup" className="bg-primary hover:bg-blue-800 text-white font-bold py-2.5 px-5 rounded-lg shadow-sm transition-all">
-            Start Free Test
-          </Link>
+          <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-sm">
+            <Link href="/signup">Start Free Test</Link>
+          </Button>
         </div>
 
-        {/* Mobile Menu Button */}
+        {/* Mobile Menu */}
         <div className="md:hidden">
-          <button 
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="text-primary focus:outline-none"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7"></path>
-            </svg>
-          </button>
+          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="sm" className="text-primary">
+                <Menu className="w-6 h-6" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+              <nav className="flex flex-col space-y-4 mt-8">
+                <Link 
+                  href="#features" 
+                  className="text-lg font-medium hover:text-accent transition-colors py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Features
+                </Link>
+                <Link 
+                  href="#pricing" 
+                  className="text-lg font-medium hover:text-accent transition-colors py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Pricing
+                </Link>
+                <Link 
+                  href="/login" 
+                  className="text-lg font-medium hover:text-accent transition-colors py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Login
+                </Link>
+                <div className="pt-4">
+                  <Button asChild className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold">
+                    <Link href="/signup" onClick={() => setIsMobileMenuOpen(false)}>
+                      Start Free Test
+                    </Link>
+                  </Button>
+                </div>
+              </nav>
+            </SheetContent>
+          </Sheet>
         </div>
       </nav>
-
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-200">
-          <Link href="#features" className="block py-3 px-6 text-sm font-medium hover:bg-gray-50">Features</Link>
-          <Link href="#pricing" className="block py-3 px-6 text-sm font-medium hover:bg-gray-50">Pricing</Link>
-          <Link href="/login" className="block py-3 px-6 text-sm font-medium hover:bg-gray-50">Login</Link>
-          <div className="p-4">
-            <Link href="/signup" className="block text-center bg-primary hover:bg-blue-800 w-full text-white font-bold py-3 px-5 rounded-lg">
-              Start Free Test
-            </Link>
-          </div>
-        </div>
-      )}
     </header>
   );
 }

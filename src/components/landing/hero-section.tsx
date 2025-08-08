@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 export function HeroSection() {
   return (
@@ -9,13 +10,13 @@ export function HeroSection() {
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-primary leading-tight">
             The Smartest Way to Prepare for Your PMP Exam
           </h1>
-          <p className="mt-6 text-lg md:text-xl text-gray-600 max-w-xl mx-auto md:mx-0">
+          <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-xl mx-auto md:mx-0">
             Go beyond memorization. Our adaptive practice exams pinpoint your weaknesses and create a focused study plan, so you pass with confidence.
           </p>
           <div className="mt-8 flex justify-center md:justify-start">
-            <Link href="/signup" className="bg-accent hover:bg-amber-600 text-white font-bold py-4 px-8 rounded-lg shadow-lg shadow-amber-500/30 transition-all duration-300 transform hover:scale-105">
-              Start Your First Free Test
-            </Link>
+            <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold py-6 px-10 text-lg shadow-lg shadow-accent/30 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1">
+              <Link href="/signup">Start Your First Free Test</Link>
+            </Button>
           </div>
         </div>
 
