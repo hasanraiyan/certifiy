@@ -25,7 +25,6 @@ interface Plan {
 }
 
 export default function ProductPlanManagement() {
-  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   // Mock plans data
@@ -120,10 +119,6 @@ export default function ProductPlanManagement() {
       includedTests: [],
       maxUsers: undefined
     });
-  };
-
-  const handleEditPlan = (plan: Plan) => {
-    setSelectedPlan(plan);
   };
 
   const handleDeletePlan = (planId: string) => {
@@ -255,10 +250,10 @@ export default function ProductPlanManagement() {
                               <Button 
                                 size="sm" 
                                 variant="outline"
-                                onClick={() => handleEditPlan(plan)}
                                 className="flex-1"
+                                disabled
                               >
-                                Edit
+                                Edit (Coming Soon)
                               </Button>
                               <Button 
                                 size="sm" 

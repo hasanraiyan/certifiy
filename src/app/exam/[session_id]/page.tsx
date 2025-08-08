@@ -71,6 +71,19 @@ export default function TestModePage() {
   const currentQuestion = questions[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
 
+  const handleSubmitExam = useCallback(async () => {
+    // Save current answer if any
+    if (selectedAnswer) {
+      setAnswers(prev => ({
+        ...prev,
+        [currentQuestionIndex]: parseInt(selectedAnswer)
+      }));
+    }
+
+    // Redirect to results page
+    router.push(`/results/${sessionId}`);
+  }, [selectedAnswer, currentQuestionIndex, router, sessionId]);
+
   // Timer effect
   useEffect(() => {
     const timer = setInterval(() => {
@@ -117,19 +130,6 @@ export default function TestModePage() {
       setSelectedAnswer(answers[currentQuestionIndex - 1]?.toString() || '');
     }
   };
-
-  const handleSubmitExam = useCallback(() => {
-    // Save current answer if any
-    if (selectedAnswer) {
-      setAnswers(prev => ({
-        ...prev,
-        [currentQuestionIndex]: parseInt(selectedAnswer)
-      }));
-    }
-
-    // Redirect to results page
-    router.push(`/results/${sessionId}`);
-  }, [selectedAnswer, currentQuestionIndex, router, sessionId]);
 
   const answeredCount = Object.keys(answers).length + (selectedAnswer ? 1 : 0);
   const isTimeRunningOut = timeRemaining < 300; // Less than 5 minutes

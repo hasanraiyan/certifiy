@@ -20,16 +20,41 @@ interface Question {
   domain: string;
   difficulty: 'easy' | 'medium' | 'hard';
   tags: string[];
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export default function QuestionBankManagement() {
-  const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDomain, setFilterDomain] = useState('all');
   const [filterDifficulty, setFilterDifficulty] = useState('all');
+  
+  const [newQuestion, setNewQuestion] = useState({
+    text: '',
+    type: 'mcq' as 'mcq' | 'hotspot' | 'drag_drop',
+    options: ['', '', '', ''],
+    correctAnswer: 0,
+    explanation: '',
+    domain: '',
+    difficulty: 'medium' as 'easy' | 'medium' | 'hard',
+    tags: [] as string[]
+  });
+  
+  const handleCreateQuestion = () => {
+    // TODO: Implement question creation
+    console.log('Creating question:', newQuestion);
+    // Reset form
+    setNewQuestion({
+      text: '',
+      type: 'mcq',
+      options: ['', '', '', ''],
+      correctAnswer: 0,
+      explanation: '',
+      domain: '',
+      difficulty: 'medium',
+      tags: [] as string[]
+    });
+  };
 
   // Mock questions data
   const questions: Question[] = [
@@ -47,9 +72,7 @@ export default function QuestionBankManagement() {
       explanation: 'The project charter formally authorizes the project and gives the project manager the authority to apply organizational resources to project activities.',
       domain: 'Integration Management',
       difficulty: 'medium',
-      tags: ['charter', 'authorization', 'project-manager'],
-      createdAt: '2024-12-01',
-      updatedAt: '2024-12-01'
+      tags: []
     },
     {
       id: '2',
@@ -65,9 +88,7 @@ export default function QuestionBankManagement() {
       explanation: 'Projects are temporary endeavors with a definite beginning and end, creating unique products or services. Ongoing operations are not projects.',
       domain: 'Project Framework',
       difficulty: 'easy',
-      tags: ['project-definition', 'characteristics'],
-      createdAt: '2024-12-01',
-      updatedAt: '2024-12-01'
+      tags: []
     }
   ];
 
@@ -86,36 +107,9 @@ export default function QuestionBankManagement() {
     'Agile'
   ];
 
-  const [newQuestion, setNewQuestion] = useState({
-    text: '',
-    type: 'mcq' as 'mcq' | 'hotspot' | 'drag_drop',
-    options: ['', '', '', ''],
-    correctAnswer: 0,
-    explanation: '',
-    domain: '',
-    difficulty: 'medium' as 'easy' | 'medium' | 'hard',
-    tags: ''
-  });
-
-  const handleCreateQuestion = () => {
-    // TODO: Implement question creation
-    console.log('Creating question:', newQuestion);
-    // Reset form
-    setNewQuestion({
-      text: '',
-      type: 'mcq',
-      options: ['', '', '', ''],
-      correctAnswer: 0,
-      explanation: '',
-      domain: '',
-      difficulty: 'medium',
-      tags: ''
-    });
-  };
-
   const handleEditQuestion = (question: Question) => {
-    setSelectedQuestion(question);
-    setIsEditing(true);
+    // TODO: Implement edit functionality
+    console.log('Editing question:', question.id);
   };
 
   const handleDeleteQuestion = (questionId: string) => {
@@ -398,8 +392,15 @@ export default function QuestionBankManagement() {
                       <Input
                         id="tags"
                         placeholder="e.g., charter, authorization, project-manager"
-                        value={newQuestion.tags}
-                        onChange={(e) => setNewQuestion(prev => ({ ...prev, tags: e.target.value }))}
+                        value={Array.isArray(newQuestion.tags) ? newQuestion.tags.join(', ') : newQuestion.tags}
+                        onChange={(e) => {
+                          const tagsValue = e.target.value;
+                          const tagsArray = tagsValue.split(',').map(tag => tag.trim()).filter(Boolean);
+                          setNewQuestion(prev => ({
+                            ...prev,
+                            tags: tagsArray
+                          }));
+                        }}
                       />
                     </div>
                   </div>
@@ -417,7 +418,7 @@ export default function QuestionBankManagement() {
                         explanation: '',
                         domain: '',
                         difficulty: 'medium',
-                        tags: ''
+                        tags: [] as string[]
                       });
                     }}>
                       Clear Form
