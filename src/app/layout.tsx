@@ -23,9 +23,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body className={cn("min-h-screen bg-white font-sans text-foreground antialiased", inter.variable)}>
-        <DevStatusBar />
+        {/* <DevStatusBar /> */}
         {children}
-        <DevAuthPanel />
+        {/* <DevAuthPanel /> */}
       </body>
     </html>
   );
