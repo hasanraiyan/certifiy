@@ -45,24 +45,32 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --background: oklch(1 0 0); /* White */
+  --foreground: oklch(0.15 0.01 254); /* Darker, Softer Black for Text */
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.15 0.01 254);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
+  --popover-foreground: oklch(0.15 0.01 254);
+  
+  /* Primary Brand Color - Deep Navy Blue */
+  --primary: oklch(0.31 0.09 254); /* #1E3A8A */
+  --primary-foreground: oklch(0.99 0 0); /* White text on primary */
+
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
+  
   --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --muted-foreground: oklch(0.42 0.01 254); /* Muted Gray for secondary text */
+
+  /* Accent Color - Amber/Gold */
+  --accent: oklch(0.72 0.15 93); /* #F59E0B */
+  --accent-foreground: oklch(0.31 0.09 254); /* Primary color text on accent */
+
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --ring: oklch(0.31 0.09 254 / 0.5); /* Ring color based on primary */
+  
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
