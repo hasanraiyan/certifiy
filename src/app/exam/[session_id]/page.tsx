@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { AuthGuard } from '@/components/auth/auth-guard';
 import { Button } from '@/components/ui/button';
@@ -84,7 +84,7 @@ export default function TestModePage() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [handleSubmitExam]);
 
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -118,7 +118,7 @@ export default function TestModePage() {
     }
   };
 
-  const handleSubmitExam = () => {
+  const handleSubmitExam = useCallback(() => {
     // Save current answer if any
     if (selectedAnswer) {
       setAnswers(prev => ({
@@ -129,7 +129,7 @@ export default function TestModePage() {
 
     // Redirect to results page
     router.push(`/results/${sessionId}`);
-  };
+  }, [selectedAnswer, currentQuestionIndex, router, sessionId]);
 
   const answeredCount = Object.keys(answers).length + (selectedAnswer ? 1 : 0);
   const isTimeRunningOut = timeRemaining < 300; // Less than 5 minutes

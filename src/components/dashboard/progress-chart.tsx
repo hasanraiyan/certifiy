@@ -33,7 +33,7 @@ export function ProgressChart() {
         </div>
       </div>
       <p className="mt-4 text-sm text-muted-foreground">
-        You've completed <strong>{completedTests} of {totalTests}</strong> available tests.
+        You&apos;ve completed <strong>{completedTests} of {totalTests}</strong> available tests.
       </p>
     </div>
   );

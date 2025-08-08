@@ -75,11 +75,11 @@ export default function TestManagement() {
   const [newTest, setNewTest] = useState({
     name: '',
     description: '',
-    type: 'knowledge_area' as const,
+    type: 'knowledge_area' as 'full_exam' | 'domain_focus' | 'knowledge_area',
     questionCount: 50,
     duration: 60,
     domains: [] as string[],
-    difficulty: 'mixed' as const
+    difficulty: 'mixed' as 'mixed' | 'easy' | 'medium' | 'hard'
   });
 
   const availableDomains = [

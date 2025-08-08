@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Settings, User, LogOut, LogIn, X } from 'lucide-react';
+import { Settings, User, LogOut, X } from 'lucide-react';
 import { type User as UserType, type UserRole } from '@/lib/auth';
 
 // Mock users for development
@@ -176,16 +177,16 @@ export function DevAuthPanel() {
                 <label className="text-sm font-medium text-orange-800">Quick Access:</label>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <Button asChild variant="outline" size="sm" className="h-8">
-                    <a href="/dashboard">Dashboard</a>
+                    <Link href="/dashboard">Dashboard</Link>
                   </Button>
                   <Button asChild variant="outline" size="sm" className="h-8">
-                    <a href="/admin/dashboard">Admin</a>
+                    <Link href="/admin/dashboard">Admin</Link>
                   </Button>
                   <Button asChild variant="outline" size="sm" className="h-8">
-                    <a href="/exam/setup">Exam Setup</a>
+                    <Link href="/exam/setup">Exam Setup</Link>
                   </Button>
                   <Button asChild variant="outline" size="sm" className="h-8">
-                    <a href="/admin/questions">Questions</a>
+                    <Link href="/admin/questions">Questions</Link>
                   </Button>
                 </div>
               </div>

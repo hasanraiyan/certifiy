@@ -101,7 +101,7 @@ export default function ProductPlanManagement() {
     name: '',
     description: '',
     price: 0,
-    billingType: 'one_time' as const,
+    billingType: 'one_time' as 'one_time' | 'monthly' | 'yearly' | 'lifetime',
     features: [''],
     includedTests: [] as string[],
     maxUsers: undefined as number | undefined
@@ -115,7 +115,7 @@ export default function ProductPlanManagement() {
       name: '',
       description: '',
       price: 0,
-      billingType: 'one_time',
+      billingType: 'one_time' as 'one_time' | 'monthly' | 'yearly' | 'lifetime',
       features: [''],
       includedTests: [],
       maxUsers: undefined

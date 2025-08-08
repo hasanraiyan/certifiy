@@ -88,12 +88,12 @@ export default function QuestionBankManagement() {
 
   const [newQuestion, setNewQuestion] = useState({
     text: '',
-    type: 'mcq' as const,
+    type: 'mcq' as 'mcq' | 'hotspot' | 'drag_drop',
     options: ['', '', '', ''],
     correctAnswer: 0,
     explanation: '',
     domain: '',
-    difficulty: 'medium' as const,
+    difficulty: 'medium' as 'easy' | 'medium' | 'hard',
     tags: ''
   });
 

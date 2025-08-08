@@ -13,7 +13,6 @@ import {
   BarChart3, 
   LogOut,
   Menu,
-  X,
   CheckCircle2
 } from 'lucide-react';
 

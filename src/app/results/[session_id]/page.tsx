@@ -176,7 +176,7 @@ export default function TestResultsPage() {
                     <div className="space-y-4">
                       {testResults.passed ? (
                         <>
-                          <p className="text-green-600 font-medium">Great job! You're ready for the PMP exam.</p>
+                          <p className="text-green-600 font-medium">Great job! You&apos;re ready for the PMP exam.</p>
                           <ul className="space-y-2 text-sm">
                             <li>• Review any incorrect answers</li>
                             <li>• Take additional practice tests</li>

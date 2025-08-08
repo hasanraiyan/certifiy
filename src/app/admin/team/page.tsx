@@ -22,9 +22,9 @@ interface AdminUser {
 }
 
 export default function AdminUserManagement() {
+  const [selectedAdmin, setSelectedAdmin] = useState<AdminUser | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
-  const [selectedAdmin, setSelectedAdmin] = useState<AdminUser | null>(null);
 
   // Mock admin users data
   const adminUsers: AdminUser[] = [
@@ -73,7 +73,7 @@ export default function AdminUserManagement() {
   const [newAdmin, setNewAdmin] = useState({
     name: '',
     email: '',
-    role: 'content_manager' as const,
+    role: 'content_manager' as 'content_manager' | 'admin' | 'super_admin',
     permissions: [] as string[]
   });
 
@@ -83,14 +83,15 @@ export default function AdminUserManagement() {
     super_admin: ['all']
   };
 
-  const allPermissions = [
-    'manage_questions',
-    'manage_tests', 
-    'manage_users',
-    'manage_plans',
-    'view_reports',
-    'manage_team'
-  ];
+  // Available permissions for admin roles (commented out until needed)
+  // const availablePermissions = [
+  //   'manage_questions',
+  //   'manage_tests', 
+  //   'manage_users',
+  //   'manage_plans',
+  //   'view_reports',
+  //   'manage_team'
+  // ];
 
   const handleCreateAdmin = () => {
     // TODO: Implement admin creation

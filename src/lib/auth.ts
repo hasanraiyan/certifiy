@@ -34,7 +34,7 @@ export const getCurrentUser = async (): Promise<User | null> => {
   return null;
 };
 
-export const login = async (email: string, password: string): Promise<User> => {
+export const login = async (): Promise<User> => {
   // Mock login - replace with real authentication
   throw new Error('Not implemented');
 };
@@ -44,7 +44,7 @@ export const logout = async (): Promise<void> => {
   throw new Error('Not implemented');
 };
 
-export const signup = async (email: string, password: string, name: string): Promise<User> => {
+export const signup = async (): Promise<User> => {
   // Mock signup - replace with real authentication
   throw new Error('Not implemented');
 };

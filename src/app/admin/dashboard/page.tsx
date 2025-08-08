@@ -4,19 +4,14 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import { 
   CreditCard, 
   Users, 
-  CheckCircle, 
   FileText, 
-  BarChart3, 
   Plus,
-  Download,
   TrendingUp,
   TrendingDown,
-  User,
-  Activity
+  User
 } from 'lucide-react';
 
 const activityFeed = [
@@ -80,7 +75,7 @@ export default function AdminDashboard() {
         <div>
           <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
           <p className="mt-1 text-muted-foreground">
-            Welcome back, Alice. Here's your platform overview.
+            Welcome back, Alice. Here&apos;s your platform overview.
           </p>
         </div>
         <div className="relative">

@@ -9,7 +9,7 @@ export default function UnauthorizedPage() {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold text-red-600">Access Denied</CardTitle>
           <CardDescription>
-            You don't have permission to access this page
+            You don&apos;t have permission to access this page
           </CardDescription>
         </CardHeader>
 
@@ -17,7 +17,7 @@ export default function UnauthorizedPage() {
           <div className="text-6xl mb-4">🚫</div>
           
           <p className="text-gray-600">
-            This page requires specific permissions that your account doesn't have. 
+            This page requires specific permissions that your account doesn&apos;t have. 
             Please contact your administrator if you believe this is an error.
           </p>
 

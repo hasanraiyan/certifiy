@@ -48,7 +48,7 @@ export function PricingSection() {
         <section id="pricing" className="py-20 md:py-28 bg-background">
             <div className="container mx-auto px-6 text-center">
                 <h2 className="text-3xl md:text-4xl font-bold text-foreground">Simple, Transparent Pricing</h2>
-                <p className="mt-4 text-lg text-muted-foreground">Choose the plan that's right for you. Get started for free.</p>
+                <p className="mt-4 text-lg text-muted-foreground">Choose the plan that&apos;s right for you. Get started for free.</p>
                 <div className="mt-16 grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
                     {plans.map((plan) => (
                         <Card 
