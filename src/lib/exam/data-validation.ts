@@ -43,6 +43,49 @@ export interface DataIntegrityReport {
 /**
  * Comprehensive validation of exam session data
  */
+function validateQuestionsData(
+  questions: Question[],
+  strictMode = false
+): ValidationResult {
+  const errors: ValidationError[] = [];
+  const warnings: string[] = [];
+  const repairableIssues: RepairableIssue[] = [];
+
+  questions.forEach((question, index) => {
+    const questionErrors = validateQuestion(question);
+    errors.push(...questionErrors);
+
+    if (strictMode && !question.explanation) {
+      warnings.push(`Question ${index + 1} is missing explanation`);
+    }
+  });
+
+  return { isValid: errors.length === 0, errors, warnings, repairableIssues };
+}
+
+function validateAnswersData(
+  session: ExamSession,
+  questions: Question[],
+  strictMode = false
+): ValidationResult {
+  const errors: ValidationError[] = [];
+  const warnings: string[] = [];
+  const repairableIssues: RepairableIssue[] = [];
+
+  session.answers.forEach((answer, index) => {
+    const answerErrors = validateAnswer(answer);
+    errors.push(...answerErrors);
+
+    if (strictMode) {
+      if (answer.timeSpent <= 0) {
+        warnings.push(`Answer for question ${index + 1} has invalid time spent`);
+      }
+    }
+  });
+
+  return { isValid: errors.length === 0, errors, warnings, repairableIssues };
+}
+
 export function validateExamData(
   session: ExamSession,
   questions: Question[],
@@ -70,18 +113,27 @@ export function validateExamData(
   }
 
   // Generate repair recommendations
-  const repairRecommendations = generateRepairRecommendations(
-    sessionValidation,
-    questionsValidation,
-    answersValidation
-  )
+  function generateRepairRecommendations(errors: ValidationError[]): string[] {
+    return errors.map(error => {
+      if (error.field) {
+        return `Fix ${error.field}: ${error.message}`;
+      }
+      return error.message;
+    });
+  }
+
+  const recommendations = generateRepairRecommendations(
+    [...sessionValidation.errors, 
+     ...questionsValidation.errors, 
+     ...answersValidation.errors]
+  );
 
   return {
     sessionIntegrity: sessionValidation,
     questionsIntegrity: questionsValidation,
     answersIntegrity: answersValidation,
     overallHealth,
-    repairRecommendations
+    repairRecommendations: recommendations
   }
 }
 
@@ -97,14 +149,9 @@ function validateSessionData(
   const warnings: string[] = []
   const repairableIssues: RepairableIssue[] = []
 
-  try {
-    // Basic session validation
-    validateExamSession(session)
-  } catch (error) {
-    if (error instanceof ValidationError) {
-      errors.push(error)
-    }
-  }
+  // Basic session validation
+  const sessionValidationErrors = validateExamSession(session);
+  errors.push(...sessionValidationErrors);
 
   // Check session consistency
   if (session.currentQuestionIndex >= questions.length) {
@@ -176,4 +223,10 @@ function validateSessionData(
 
   // Strict mode checks
   if (strictMode) {
-    // Check for missing required fi
+    // Check for missing required fields
+    const sessionErrors = validateExamSession(session);
+    errors.push(...sessionErrors);
+  }
+
+  return { isValid: errors.length === 0, errors, warnings, repairableIssues };
+}

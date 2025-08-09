@@ -98,6 +98,60 @@ export interface QuestionResult {
 }
 
 /**
+ * Validation error interface
+ */
+export interface ValidationError {
+  message: string;
+  field?: string;
+}
+
+/**
+ * Validation functions
+ */
+export function validateExamSession(data: ExamSession): ValidationError[] {
+  const errors: ValidationError[] = [];
+  if (!data.id) errors.push({ message: "Missing session ID", field: "id" });
+  if (!data.userId) errors.push({ message: "Missing user ID", field: "userId" });
+  if (!data.examConfig) errors.push({ message: "Missing exam configuration", field: "examConfig" });
+  return errors;
+}
+
+export function validateQuestion(data: Question): ValidationError[] {
+  const errors: ValidationError[] = [];
+  if (!data.id) errors.push({ message: "Missing question ID", field: "id" });
+  if (!data.text) errors.push({ message: "Missing question text", field: "text" });
+  if (!data.options || data.options.length === 0) errors.push({ message: "Missing answer options", field: "options" });
+  return errors;
+}
+
+export function validateAnswer(data: Answer): ValidationError[] {
+  const errors: ValidationError[] = [];
+  if (!data.questionId) errors.push({ message: "Missing question ID", field: "questionId" });
+  if (!data.selectedOptions) errors.push({ message: "Missing selected options", field: "selectedOptions" });
+  if (!data.timestamp) errors.push({ message: "Missing timestamp", field: "timestamp" });
+  return errors;
+}
+
+export function validateExamConfig(data: ExamConfig): ValidationError[] {
+  const errors: ValidationError[] = [];
+  if (!data.id) errors.push({ message: "Missing config ID", field: "id" });
+  if (!data.type) errors.push({ message: "Missing exam type", field: "type" });
+  if (!data.examType) errors.push({ message: "Missing exam mode", field: "examType" });
+  if (!data.settings) errors.push({ message: "Missing exam settings", field: "settings" });
+  return errors;
+}
+
+export function validateExamResults(data: QuestionResult[]): ValidationError[] {
+  const errors: ValidationError[] = [];
+  if (!Array.isArray(data)) errors.push({ message: "Results must be an array", field: "results" });
+  data.forEach((result, index) => {
+    if (!result.questionId) errors.push({ message: `Missing question ID at index ${index}`, field: `results[${index}].questionId` });
+    if (result.correct === undefined) errors.push({ message: `Missing correct flag at index ${index}`, field: `results[${index}].correct` });
+  });
+  return errors;
+}
+
+/**
  * Exam results interface
  */
 export interface ExamResults {
