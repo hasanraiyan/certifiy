@@ -1,431 +1,382 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { AuthGuard } from '@/components/auth/auth-guard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Plus, X, ArrowLeft, ArrowRight } from 'lucide-react';
+
+// --- MOCK DATA ---
 
 interface Test {
   id: string;
   name: string;
-  description: string;
-  type: 'full_exam' | 'domain_focus' | 'knowledge_area';
+  type: 'Full Exam' | 'Domain Quiz' | 'Knowledge Area';
   questionCount: number;
-  duration: number; // in minutes
-  domains: string[];
-  difficulty: 'mixed' | 'easy' | 'medium' | 'hard';
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  status: 'Active' | 'Draft';
 }
 
+interface Question {
+  id: string;
+  text: string;
+  domain: 'People' | 'Process' | 'Business Environment' | 'Agile';
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+}
+
+const initialTests: Test[] = [
+  { id: '1', name: 'PMP Mock Exam #1', type: 'Full Exam', questionCount: 180, status: 'Active' },
+  { id: '2', name: 'Agile Practice Test', type: 'Domain Quiz', questionCount: 60, status: 'Active' },
+  { id: '3', name: 'Risk Management Quiz', type: 'Knowledge Area', questionCount: 40, status: 'Draft' },
+];
+
+const allQuestions: Question[] = [
+  { id: 'q101', text: 'What is the primary purpose of a project charter?', domain: 'Process', difficulty: 'Easy' },
+  { id: 'q102', text: 'Which leadership style is most effective in a crisis?', domain: 'People', difficulty: 'Medium' },
+  { id: 'q103', text: 'Calculate the SPI if EV is $500 and PV is $600.', domain: 'Process', difficulty: 'Medium' },
+  { id: 'q104', text: 'What is the key output of the "Identify Risks" process?', domain: 'Process', difficulty: 'Hard' },
+  { id: 'q105', text: 'Describe the concept of "servant leadership" in Agile.', domain: 'Agile', difficulty: 'Easy' },
+  { id: 'q106', text: 'How does organizational culture impact project management?', domain: 'Business Environment', difficulty: 'Medium' },
+  { id: 'q107', text: 'What is the main difference between a risk and an issue?', domain: 'Process', difficulty: 'Easy' },
+  { id: 'q108', text: 'A key stakeholder is resistant to change. What is the first step?', domain: 'People', difficulty: 'Medium' },
+];
+
+// --- COMPONENT ---
+
 export default function TestManagement() {
-  const [selectedTest, setSelectedTest] = useState<Test | null>(null);
+  const [tests, setTests] = useState<Test[]>(initialTests);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [isConfirmed, setIsConfirmed] = useState(false);
+  
+  const [testDetails, setTestDetails] = useState({ name: '', count: 180, method: 'manual' });
+  const [selectedQuestions, setSelectedQuestions] = useState<Question[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState('all');
+  const [filterDomain, setFilterDomain] = useState('all');
 
-  // Mock tests data
-  const tests: Test[] = [
-    {
-      id: '1',
-      name: 'PMP Mock Exam #1',
-      description: 'Complete PMP certification practice exam covering all domains',
-      type: 'full_exam',
-      questionCount: 180,
-      duration: 240, // 4 hours
-      domains: ['People', 'Process', 'Business Environment'],
-      difficulty: 'mixed',
-      isActive: true,
-      createdAt: '2024-12-01',
-      updatedAt: '2024-12-01'
-    },
-    {
-      id: '2',
-      name: 'Agile Practice Test',
-      description: 'Focused test on Agile and Scrum methodologies',
-      type: 'domain_focus',
-      questionCount: 60,
-      duration: 90,
-      domains: ['Agile'],
-      difficulty: 'mixed',
-      isActive: true,
-      createdAt: '2024-12-01',
-      updatedAt: '2024-12-01'
-    },
-    {
-      id: '3',
-      name: 'Risk Management Quiz',
-      description: 'Knowledge area specific test for Risk Management',
-      type: 'knowledge_area',
-      questionCount: 40,
-      duration: 60,
-      domains: ['Risk Management'],
-      difficulty: 'medium',
-      isActive: true,
-      createdAt: '2024-12-01',
-      updatedAt: '2024-12-01'
+  const openNewTestSheet = () => {
+    setIsEditing(false);
+    setCurrentStep(1);
+    setIsConfirmed(false);
+    setTestDetails({ name: '', count: 180, method: 'manual' });
+    setSelectedQuestions([]);
+    setIsSheetOpen(true);
+  };
+  
+  const editTest = (test: Test) => {
+    setIsEditing(true);
+    setCurrentStep(1);
+    setIsConfirmed(false);
+    setTestDetails({ name: test.name, count: test.questionCount, method: 'manual' });
+    setSelectedQuestions([allQuestions[0], allQuestions[2], allQuestions[5]]); // Mock selected questions for editing
+    setIsSheetOpen(true);
+  };
+
+  const nextStep = () => { if (currentStep < 3) setCurrentStep(s => s + 1); };
+  const prevStep = () => { if (currentStep > 1) setCurrentStep(s => s - 1); };
+
+  const addQuestion = (q: Question) => {
+    if (!selectedQuestions.some(sq => sq.id === q.id)) {
+      setSelectedQuestions(prev => [...prev, q]);
     }
-  ];
-
-  const [newTest, setNewTest] = useState({
-    name: '',
-    description: '',
-    type: 'knowledge_area' as 'full_exam' | 'domain_focus' | 'knowledge_area',
-    questionCount: 50,
-    duration: 60,
-    domains: [] as string[],
-    difficulty: 'mixed' as 'mixed' | 'easy' | 'medium' | 'hard'
-  });
-
-  const availableDomains = [
-    'Integration Management',
-    'Scope Management', 
-    'Schedule Management',
-    'Cost Management',
-    'Quality Management',
-    'Resource Management',
-    'Communications Management',
-    'Risk Management',
-    'Procurement Management',
-    'Stakeholder Management',
-    'Agile',
-    'People',
-    'Process',
-    'Business Environment'
-  ];
-
-  const handleCreateTest = () => {
-    // TODO: Implement test creation
-    console.log('Creating test:', newTest);
-    // Reset form
-    setNewTest({
-      name: '',
-      description: '',
-      type: 'knowledge_area',
-      questionCount: 50,
-      duration: 60,
-      domains: [],
-      difficulty: 'mixed'
+  };
+  
+  const removeQuestion = (id: string) => {
+    setSelectedQuestions(prev => prev.filter(q => q.id !== id));
+  };
+  
+  const filteredAvailableQuestions = useMemo(() => {
+    return allQuestions.filter(q => {
+      const matchesSearch = q.text.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesDomain = filterDomain === 'all' || q.domain === filterDomain;
+      return matchesSearch && matchesDomain;
     });
-  };
+  }, [searchTerm, filterDomain]);
+  
+  const getDomainCount = (domain: Question['domain']) => selectedQuestions.filter(q => q.domain === domain).length;
 
-  const handleEditTest = (test: Test) => {
-    setSelectedTest(test);
-  };
-
-  const handleDeleteTest = (testId: string) => {
-    // TODO: Implement test deletion
-    console.log('Deleting test:', testId);
-  };
-
-  const handleToggleActive = (testId: string) => {
-    // TODO: Implement toggle active status
-    console.log('Toggling active status for test:', testId);
-  };
-
-  const filteredTests = tests.filter(test => {
-    const matchesSearch = test.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         test.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = filterType === 'all' || test.type === filterType;
-    
-    return matchesSearch && matchesType;
-  });
+  const domainBlueprint = [
+    { name: 'People', target: 76, color: 'bg-blue-500' },
+    { name: 'Process', target: 90, color: 'bg-green-500' },
+    { name: 'Business Environment', target: 14, color: 'bg-yellow-500' },
+  ];
+  
+  const StepIndicator = () => (
+    <div className="flex items-center space-x-2 text-sm text-gray-500">
+        <span className={`p-2 rounded-md ${currentStep >= 1 ? 'font-semibold text-primary' : ''} ${currentStep === 1 ? 'bg-primary/10' : ''}`}>
+            1. Details & Method
+        </span>
+        <span className="text-gray-300">&rarr;</span>
+        <span className={`p-2 rounded-md ${currentStep >= 2 ? 'font-semibold text-primary' : ''} ${currentStep === 2 ? 'bg-primary/10' : ''}`}>
+            2. Build Test
+        </span>
+        <span className="text-gray-300">&rarr;</span>
+        <span className={`p-2 rounded-md ${currentStep >= 3 ? 'font-semibold text-primary' : ''} ${currentStep === 3 ? 'bg-primary/10' : ''}`}>
+            3. Review & Publish
+        </span>
+    </div>
+  );
 
   return (
     <AuthGuard allowedRoles={['admin', 'super_admin']}>
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Test & Mock Exam Management</h1>
-            <p className="text-gray-600">Create and manage test structures and configurations</p>
+      <div className="space-y-8">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Test & Exam Library</h1>
+            <p className="mt-1 text-muted-foreground">Assemble questions into structured tests and mock exams.</p>
           </div>
-
-          <Tabs defaultValue="browse" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="browse">Browse Tests</TabsTrigger>
-              <TabsTrigger value="create">Create Test</TabsTrigger>
-            </TabsList>
-
-            {/* Browse Tests Tab */}
-            <TabsContent value="browse">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Test Library</CardTitle>
-                  <CardDescription>Manage existing tests and mock exams</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {/* Filters */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div>
-                      <Label htmlFor="search">Search Tests</Label>
-                      <Input
-                        id="search"
-                        placeholder="Search by name or description..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="type-filter">Test Type</Label>
-                      <Select value={filterType} onValueChange={setFilterType}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="All types" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Types</SelectItem>
-                          <SelectItem value="full_exam">Full Exam</SelectItem>
-                          <SelectItem value="domain_focus">Domain Focus</SelectItem>
-                          <SelectItem value="knowledge_area">Knowledge Area</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="flex items-end">
-                      <Button onClick={() => {
-                        setSearchTerm('');
-                        setFilterType('all');
-                      }}>
-                        Clear Filters
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Tests List */}
-                  <div className="space-y-4">
-                    {filteredTests.map((test) => (
-                      <Card key={test.id} className="border-l-4 border-l-green-500">
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="text-sm bg-green-100 text-green-800 px-2 py-1 rounded">
-                                  {test.type.replace('_', ' ').toUpperCase()}
-                                </span>
-                                <span className={`text-sm px-2 py-1 rounded ${
-                                  test.difficulty === 'easy' ? 'bg-green-100 text-green-800' :
-                                  test.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                                  test.difficulty === 'hard' ? 'bg-red-100 text-red-800' :
-                                  'bg-blue-100 text-blue-800'
-                                }`}>
-                                  {test.difficulty}
-                                </span>
-                                <span className={`text-sm px-2 py-1 rounded ${
-                                  test.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                                }`}>
-                                  {test.isActive ? 'Active' : 'Inactive'}
-                                </span>
-                              </div>
-                              
-                              <h3 className="font-bold text-lg mb-1">{test.name}</h3>
-                              <p className="text-gray-600 mb-2">{test.description}</p>
-                              
-                              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                                <div>
-                                  <span className="font-medium">Questions:</span> {test.questionCount}
-                                </div>
-                                <div>
-                                  <span className="font-medium">Duration:</span> {Math.floor(test.duration / 60)}h {test.duration % 60}m
-                                </div>
-                                <div>
-                                  <span className="font-medium">Domains:</span> {test.domains.length}
-                                </div>
-                                <div>
-                                  <span className="font-medium">Created:</span> {new Date(test.createdAt).toLocaleDateString()}
-                                </div>
-                              </div>
-
-                              <div className="mt-2">
-                                <span className="text-sm font-medium">Domains: </span>
-                                <span className="text-sm text-gray-600">{test.domains.join(', ')}</span>
-                              </div>
-                            </div>
-
-                            <div className="flex flex-col gap-2 ml-4">
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                onClick={() => handleEditTest(test)}
-                              >
-                                Edit
-                              </Button>
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                onClick={() => handleToggleActive(test.id)}
-                              >
-                                {test.isActive ? 'Deactivate' : 'Activate'}
-                              </Button>
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                onClick={() => handleDeleteTest(test.id)}
-                              >
-                                Delete
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-
-                  {filteredTests.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      No tests found matching your criteria.
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Create Test Tab */}
-            <TabsContent value="create">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Create New Test</CardTitle>
-                  <CardDescription>Configure a new test or mock exam</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <Label htmlFor="test-name">Test Name</Label>
-                      <Input
-                        id="test-name"
-                        placeholder="e.g., PMP Mock Exam #3"
-                        value={newTest.name}
-                        onChange={(e) => setNewTest(prev => ({ ...prev, name: e.target.value }))}
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="test-type">Test Type</Label>
-                      <Select 
-                        value={newTest.type} 
-                        onValueChange={(value: 'full_exam' | 'domain_focus' | 'knowledge_area') => 
-                          setNewTest(prev => ({ ...prev, type: value }))
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="full_exam">Full Exam (180 questions)</SelectItem>
-                          <SelectItem value="domain_focus">Domain Focus (60-100 questions)</SelectItem>
-                          <SelectItem value="knowledge_area">Knowledge Area (30-60 questions)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="description">Description</Label>
-                    <Textarea
-                      id="description"
-                      placeholder="Describe what this test covers..."
-                      value={newTest.description}
-                      onChange={(e) => setNewTest(prev => ({ ...prev, description: e.target.value }))}
-                      rows={3}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div>
-                      <Label htmlFor="question-count">Question Count</Label>
-                      <Input
-                        id="question-count"
-                        type="number"
-                        min="10"
-                        max="200"
-                        value={newTest.questionCount}
-                        onChange={(e) => setNewTest(prev => ({ ...prev, questionCount: parseInt(e.target.value) || 50 }))}
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="duration">Duration (minutes)</Label>
-                      <Input
-                        id="duration"
-                        type="number"
-                        min="15"
-                        max="300"
-                        value={newTest.duration}
-                        onChange={(e) => setNewTest(prev => ({ ...prev, duration: parseInt(e.target.value) || 60 }))}
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="difficulty">Difficulty</Label>
-                      <Select 
-                        value={newTest.difficulty} 
-                        onValueChange={(value: 'mixed' | 'easy' | 'medium' | 'hard') => 
-                          setNewTest(prev => ({ ...prev, difficulty: value }))
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="mixed">Mixed</SelectItem>
-                          <SelectItem value="easy">Easy</SelectItem>
-                          <SelectItem value="medium">Medium</SelectItem>
-                          <SelectItem value="hard">Hard</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label>Domains to Include</Label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
-                      {availableDomains.map(domain => (
-                        <label key={domain} className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            checked={newTest.domains.includes(domain)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setNewTest(prev => ({ ...prev, domains: [...prev.domains, domain] }));
-                              } else {
-                                setNewTest(prev => ({ ...prev, domains: prev.domains.filter(d => d !== domain) }));
-                              }
-                            }}
-                          />
-                          <span className="text-sm">{domain}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="flex gap-4">
-                    <Button onClick={handleCreateTest}>
-                      Create Test
-                    </Button>
-                    <Button variant="outline" onClick={() => {
-                      setNewTest({
-                        name: '',
-                        description: '',
-                        type: 'knowledge_area',
-                        questionCount: 50,
-                        duration: 60,
-                        domains: [],
-                        difficulty: 'mixed'
-                      });
-                    }}>
-                      Clear Form
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+          <Button onClick={openNewTestSheet} className="w-full sm:w-auto">
+            <Plus className="w-5 h-5 mr-2" />
+            Create Test
+          </Button>
         </div>
+
+        {/* Test Library Table */}
+        <Card className='p-0'>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto rounded-t-xl">
+              <Table className='rounded-xl'>
+                <TableHeader className='bg-gray-300 rounded-t-xl'>
+                  <TableRow className='rounded-t-xl'>
+                    <TableHead>Test Name</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Questions</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {tests.map((test) => (
+                    <TableRow key={test.id}>
+                      <TableCell className="font-semibold">{test.name}</TableCell>
+                      <TableCell><Badge variant="outline">{test.type}</Badge></TableCell>
+                      <TableCell>{test.questionCount}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${test.status === 'Active' ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                          <span>{test.status}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="sm" onClick={() => editTest(test)}>Edit</Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Editor Sheet for Test Creation/Editing */}
+      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+        <SheetContent className="w-full max-w-5xl p-0 flex flex-col">
+          <SheetHeader className="p-6 border-b">
+            <SheetTitle className="text-2xl">{isEditing ? 'Edit Test' : 'Create New Test'}</SheetTitle>
+            <SheetDescription asChild>
+              <StepIndicator />
+            </SheetDescription>
+          </SheetHeader>
+          
+          <div className="flex-grow overflow-y-auto">
+            {/* Step 1: Details & Method */}
+            {currentStep === 1 && (
+              <div className="p-8 space-y-8">
+                <div>
+                  <Label className="font-semibold text-lg">Test Details</Label>
+                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="test-name" className="text-sm font-medium">Test Name</Label>
+                      <Input id="test-name" placeholder="e.g., PMP Mock Exam #3" value={testDetails.name} onChange={(e) => setTestDetails(p => ({...p, name: e.target.value}))} className="mt-1" />
+                    </div>
+                    <div>
+                      <Label htmlFor="q-count" className="text-sm font-medium">Target Question Count</Label>
+                      <Input id="q-count" type="number" value={testDetails.count} onChange={(e) => setTestDetails(p => ({...p, count: parseInt(e.target.value)}))} className="mt-1" />
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <Label className="font-semibold text-lg">Creation Method</Label>
+                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div onClick={() => setTestDetails(p => ({...p, method: 'manual'}))} className={`p-4 border-2 rounded-lg cursor-pointer ${testDetails.method === 'manual' ? 'border-primary ring-2 ring-primary' : 'border-border hover:border-primary'}`}>
+                      <h4 className="font-bold">Build Manually</h4>
+                      <p className="text-sm text-muted-foreground">Hand-pick every question for full control.</p>
+                    </div>
+                    <div onClick={() => setTestDetails(p => ({...p, method: 'auto'}))} className={`p-4 border-2 rounded-lg cursor-pointer ${testDetails.method === 'auto' ? 'border-primary ring-2 ring-primary' : 'border-border hover:border-primary'}`}>
+                      <h4 className="font-bold">Auto-Generate</h4>
+                      <p className="text-sm text-muted-foreground">Create a balanced test instantly based on a blueprint.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: Build */}
+            {currentStep === 2 && (
+                <>
+                {testDetails.method === 'manual' ? (
+                  <div className="grid grid-cols-1 md:grid-cols-5 h-full overflow-hidden">
+                    <div className="md:col-span-3 border-b md:border-b-0 md:border-r p-6 flex flex-col">
+                      <h3 className="font-bold text-lg mb-4">Available Questions</h3>
+                      <div className="flex gap-2 mb-4">
+                        <Input type="text" placeholder="Search questions..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="flex-grow" />
+                        <Select value={filterDomain} onValueChange={setFilterDomain}>
+                          <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="All Domains" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Domains</SelectItem>
+                            <SelectItem value="People">People</SelectItem>
+                            <SelectItem value="Process">Process</SelectItem>
+                            <SelectItem value="Business Environment">Business Env.</SelectItem>
+                            <SelectItem value="Agile">Agile</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex-grow overflow-y-auto space-y-2 pr-2">
+                        {filteredAvailableQuestions.map(q => (
+                          <div key={q.id} className="bg-muted p-3 rounded-lg border flex justify-between items-center">
+                            <div>
+                                <p className="text-sm font-semibold truncate max-w-xs">{q.text}</p>
+                                <div className="flex gap-2 mt-1">
+                                    <Badge variant="secondary">{q.domain}</Badge>
+                                    <Badge variant="outline">{q.difficulty}</Badge>
+                                </div>
+                            </div>
+                            <Button 
+                              onClick={() => addQuestion(q)} 
+                              disabled={selectedQuestions.some(sq => sq.id === q.id)} 
+                              size="sm"
+                              variant="outline"
+                              className="text-sm font-bold"
+                            >
+                              Add
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="md:col-span-2 p-6 flex flex-col bg-muted/30">
+                      <div className="flex justify-between items-center">
+                        <h3 className="font-bold text-lg">Test Blueprint</h3>
+                        <p className="font-semibold text-lg">{`${selectedQuestions.length} / ${testDetails.count}`}</p>
+                      </div>
+                      <div className="space-y-3 mt-4">
+                          <h4 className="text-sm font-semibold mb-2">Domain Breakdown</h4>
+                          {domainBlueprint.map(d => (
+                              <div key={d.name}>
+                                  <div className="flex justify-between text-xs mb-1">
+                                      <span>{d.name}</span>
+                                      <span>{`${getDomainCount(d.name as any)} / ${d.target}`}</span>
+                                  </div>
+                                  <Progress value={(getDomainCount(d.name as any) / d.target) * 100} className="h-1.5" />
+                              </div>
+                          ))}
+                      </div>
+                      <div className="flex-grow overflow-y-auto space-y-2 mt-4 border-t pt-4">
+                        {selectedQuestions.map(q => (
+                          <div key={q.id} className="bg-white p-2 rounded-lg border flex justify-between items-center cursor-grab">
+                            <p className="text-sm font-semibold truncate max-w-[200px]">{q.text}</p>
+                            <Button onClick={() => removeQuestion(q.id)} variant="ghost" size="icon" className="h-6 w-6 text-red-500 hover:bg-red-500/10">
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-8 space-y-8">
+                      <div>
+                          <h3 className="font-semibold text-lg">Define Test Blueprint</h3>
+                          <p className="text-sm text-muted-foreground">The system will generate a test by randomly selecting questions that match these rules.</p>
+                      </div>
+                      <div className="space-y-4">
+                          <h4 className="font-bold">Domain Percentages</h4>
+                          <div><Label>People (42%)</Label><Input type="range" defaultValue="42" className="w-full mt-1" /></div>
+                          <div><Label>Process (50%)</Label><Input type="range" defaultValue="50" className="w-full mt-1" /></div>
+                          <div><Label>Business Environment (8%)</Label><Input type="range" defaultValue="8" className="w-full mt-1" /></div>
+                      </div>
+                      <div className="space-y-4">
+                          <h4 className="font-bold">Difficulty Mix</h4>
+                          <div><Label>Easy (25%)</Label><Input type="range" defaultValue="25" className="w-full mt-1" /></div>
+                          <div><Label>Medium (50%)</Label><Input type="range" defaultValue="50" className="w-full mt-1" /></div>
+                          <div><Label>Hard (25%)</Label><Input type="range" defaultValue="25" className="w-full mt-1" /></div>
+                      </div>
+                  </div>
+                )}
+                </>
+            )}
+
+            {/* Step 3: Review */}
+            {currentStep === 3 && (
+              <div className="p-8">
+                  <h3 className="text-xl font-bold mb-4">Review & Publish</h3>
+                  <div className="bg-muted p-6 rounded-lg border space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                          <div><p className="text-sm text-muted-foreground">Test Name</p><p className="font-semibold">{testDetails.name || "Untitled Test"}</p></div>
+                          <div><p className="text-sm text-muted-foreground">Question Count</p><p className="font-semibold">{selectedQuestions.length} Questions</p></div>
+                      </div>
+                      <div>
+                          <p className="text-sm text-muted-foreground mb-2">Final Blueprint Analysis</p>
+                          <div className="space-y-2">
+                              {domainBlueprint.map(d => (
+                                  <div key={d.name}>
+                                      <div className="flex justify-between text-xs mb-1">
+                                          <span className="font-medium">{d.name}</span>
+                                          <span>{`${getDomainCount(d.name as any)} questions (${((getDomainCount(d.name as any)/selectedQuestions.length)*100).toFixed(0)}%)`}</span>
+                                      </div>
+                                      <Progress value={(getDomainCount(d.name as any) / selectedQuestions.length) * 100} className="h-2" />
+                                  </div>
+                              ))}
+                          </div>
+                      </div>
+                  </div>
+                  <div className="mt-6 flex items-center space-x-3">
+                      <Checkbox id="confirm" checked={isConfirmed} onCheckedChange={(checked) => setIsConfirmed(checked as boolean)} />
+                      <Label htmlFor="confirm" className="text-sm">I have reviewed the test and confirm it is ready for publishing.</Label>
+                  </div>
+                  {testDetails.method === 'auto' && <Button variant="link" className="mt-4 px-0">Re-generate Questions</Button>}
+              </div>
+            )}
+          </div>
+          
+          <div className="p-4 border-t bg-background flex justify-between items-center flex-shrink-0">
+            {currentStep > 1 ? (
+              <Button variant="ghost" onClick={prevStep}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
+              </Button>
+            ) : <div></div>}
+            
+            <div className="flex gap-4">
+              {currentStep < 3 ? (
+                <Button onClick={nextStep}>
+                  Next
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              ) : (
+                <Button 
+                    disabled={!isConfirmed} 
+                    className="bg-green-600 hover:bg-green-700"
+                >
+                  Publish Test
+                </Button>
+              )}
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </AuthGuard>
   );
 }
