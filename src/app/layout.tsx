@@ -3,8 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 // Development components (commented out for production)
-// import { DevAuthPanel } from "@/components/dev/dev-auth-panel";
-// import { DevStatusBar } from "@/components/dev/dev-status-bar";
+import { DevAuthPanel } from "@/components/dev/dev-auth-panel";
+import { DevStatusBar } from "@/components/dev/dev-status-bar";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -24,9 +24,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body className={cn("min-h-screen bg-white font-sans text-foreground antialiased", inter.variable)}>
-        {/* <DevStatusBar /> */}
+        <DevStatusBar />
         {children}
-        {/* <DevAuthPanel /> */}
+        <DevAuthPanel />
       </body>
     </html>
   );

@@ -1,322 +1,281 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { AuthGuard } from '@/components/auth/auth-guard';
-import { Button } from '@/components/ui/button';
+import { PracticeMode } from '@/components/exam/practice-mode';
+import { TestMode } from '@/components/exam/test-mode';
+import { ExamErrorBoundary } from '@/components/exam/exam-error-boundary';
+import { NetworkErrorHandler } from '@/components/exam/network-error-handler';
+import { SessionRecoveryDialog, useSessionRecovery } from '@/components/exam/session-recovery-dialog';
+import { ExamConfig, Question, ExamSession } from '@/lib/exam/types';
+import { validateExamSession, applyRecoveryActions } from '@/lib/exam/session-validator';
+import { recoverSession, saveSessionForRecovery } from '@/lib/exam/session-recovery';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
+import { Loader2 } from 'lucide-react';
 
-interface Question {
-  id: string;
-  text: string;
-  options: string[];
-  correctAnswer: number;
-  domain: string;
-}
-
-export default function TestModePage() {
+export default function ExamSessionPage() {
   const params = useParams();
   const router = useRouter();
   const sessionId = params.session_id as string;
 
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState<string>('');
-  const [answers, setAnswers] = useState<{ [key: number]: number }>({});
-  const [timeRemaining, setTimeRemaining] = useState(4 * 60 * 60); // 4 hours in seconds
-  const [showSubmitDialog, setShowSubmitDialog] = useState(false);
+  const [examConfig, setExamConfig] = useState<ExamConfig | null>(null);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [examSession, setExamSession] = useState<ExamSession | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Session recovery hook
+  const { 
+    hasRecoverableSessions, 
+    showRecoveryDialog, 
+    openRecoveryDialog, 
+    closeRecoveryDialog 
+  } = useSessionRecovery();
 
-  // Mock questions data
-  const questions: Question[] = [
-    {
-      id: '1',
-      text: 'What is the primary purpose of a project charter?',
-      options: [
-        'To define the project scope in detail',
-        'To formally authorize the project and provide the project manager with authority',
-        'To create the work breakdown structure',
-        'To establish the project budget'
-      ],
-      correctAnswer: 1,
-      domain: 'Integration Management'
-    },
-    {
-      id: '2',
-      text: 'Which of the following is NOT a characteristic of a project?',
-      options: [
-        'Temporary endeavor',
-        'Creates a unique product or service',
-        'Ongoing operations',
-        'Has a definite beginning and end'
-      ],
-      correctAnswer: 2,
-      domain: 'Project Framework'
-    },
-    {
-      id: '3',
-      text: 'What is the difference between a program and a project?',
-      options: [
-        'Programs are smaller than projects',
-        'Programs are a group of related projects managed together',
-        'Programs have shorter durations',
-        'There is no difference'
-      ],
-      correctAnswer: 1,
-      domain: 'Program Management'
-    }
-  ];
-
-  const currentQuestion = questions[currentQuestionIndex];
-  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
-
-  const handleSubmitExam = useCallback(async () => {
-    // Save current answer if any
-    if (selectedAnswer) {
-      setAnswers(prev => ({
-        ...prev,
-        [currentQuestionIndex]: parseInt(selectedAnswer)
-      }));
-    }
-
-    // Redirect to results page
-    router.push(`/results/${sessionId}`);
-  }, [selectedAnswer, currentQuestionIndex, router, sessionId]);
-
-  // Timer effect
+  // Initialize exam configuration and questions
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeRemaining(prev => {
-        if (prev <= 1) {
-          handleSubmitExam();
-          return 0;
+    const initializeExam = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Check for session recovery first
+        if (hasRecoverableSessions) {
+          return; // Let recovery dialog handle initialization
         }
-        return prev - 1;
+        
+        // Get exam config from sessionStorage (set by exam setup page)
+        const configData = sessionStorage.getItem(`examConfig_${sessionId}`);
+        if (!configData) {
+          setError('Exam configuration not found. Please start from the exam setup page.');
+          return;
+        }
+
+        const config: ExamConfig = JSON.parse(configData);
+        setExamConfig(config);
+
+        // Load questions based on exam configuration
+        const loadedQuestions = await loadQuestionsForExam(config);
+        setQuestions(loadedQuestions);
+
+      } catch (err) {
+        console.error('Failed to initialize exam:', err);
+        setError('Failed to load exam. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (sessionId) {
+      initializeExam();
+    }
+  }, [sessionId, hasRecoverableSessions]);
+
+  // Mock function to load questions - in a real app this would be an API call
+  const loadQuestionsForExam = async (config: ExamConfig): Promise<Question[]> => {
+    // Mock questions data based on exam type
+    const allQuestions: Question[] = [
+      {
+        id: '1',
+        text: 'What is the primary purpose of a project charter?',
+        type: 'multiple-choice',
+        options: [
+          'To define the project scope in detail',
+          'To formally authorize the project and provide the project manager with authority',
+          'To create the work breakdown structure',
+          'To establish the project budget'
+        ],
+        correctAnswer: 1,
+        explanation: 'A project charter formally authorizes the project and provides the project manager with the authority to apply organizational resources to project activities.',
+        domain: 'Integration Management',
+        knowledgeArea: 'integration',
+        difficulty: 'medium'
+      },
+      {
+        id: '2',
+        text: 'Which of the following is NOT a characteristic of a project?',
+        type: 'multiple-choice',
+        options: [
+          'Temporary endeavor',
+          'Creates a unique product or service',
+          'Ongoing operations',
+          'Has a definite beginning and end'
+        ],
+        correctAnswer: 2,
+        explanation: 'Projects are temporary endeavors with definite beginnings and ends that create unique products or services. Ongoing operations are not projects.',
+        domain: 'Project Framework',
+        knowledgeArea: 'integration',
+        difficulty: 'easy'
+      },
+      {
+        id: '3',
+        text: 'What is the difference between a program and a project?',
+        type: 'multiple-choice',
+        options: [
+          'Programs are smaller than projects',
+          'Programs are a group of related projects managed together',
+          'Programs have shorter durations',
+          'There is no difference'
+        ],
+        correctAnswer: 1,
+        explanation: 'A program is a group of related projects, subsidiary programs, and program activities managed in a coordinated manner to obtain benefits not available from managing them individually.',
+        domain: 'Program Management',
+        knowledgeArea: 'integration',
+        difficulty: 'medium'
+      }
+    ];
+
+    // Filter questions based on exam configuration
+    let filteredQuestions = allQuestions;
+
+    if (config.domain) {
+      filteredQuestions = filteredQuestions.filter(q => q.domain.toLowerCase().includes(config.domain!.toLowerCase()));
+    }
+
+    if (config.knowledgeArea) {
+      filteredQuestions = filteredQuestions.filter(q => q.knowledgeArea === config.knowledgeArea);
+    }
+
+    // Return the appropriate number of questions based on exam type
+    const questionCount = config.examType === 'full-mock' ? 180 : 
+                         config.examType === 'domain-quiz' ? 60 : 50;
+    
+    // For demo purposes, repeat questions if we don't have enough
+    const questions = [];
+    for (let i = 0; i < questionCount; i++) {
+      questions.push({
+        ...filteredQuestions[i % filteredQuestions.length],
+        id: `${filteredQuestions[i % filteredQuestions.length].id}_${i}`
       });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [handleSubmitExam]);
-
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const handleAnswerSelect = (value: string) => {
-    setSelectedAnswer(value);
-  };
-
-  const handleSaveAndNext = () => {
-    if (selectedAnswer) {
-      setAnswers(prev => ({
-        ...prev,
-        [currentQuestionIndex]: parseInt(selectedAnswer)
-      }));
     }
 
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
-      setSelectedAnswer(answers[currentQuestionIndex + 1]?.toString() || '');
-    }
+    return questions;
   };
 
-  const handlePrevious = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(prev => prev - 1);
-      setSelectedAnswer(answers[currentQuestionIndex - 1]?.toString() || '');
-    }
+  const handleExamComplete = (completedSessionId: string) => {
+    // Navigate to results page
+    router.push(`/results/${completedSessionId}`);
   };
 
-  const answeredCount = Object.keys(answers).length + (selectedAnswer ? 1 : 0);
-  const isTimeRunningOut = timeRemaining < 300; // Less than 5 minutes
+  const handleSessionRecovered = (session: ExamSession, recoveredQuestions: Question[]) => {
+    // Validate recovered session
+    const validation = validateExamSession(session, recoveredQuestions);
+    
+    if (!validation.canRecover) {
+      setError('Recovered session data is corrupted and cannot be used.');
+      return;
+    }
 
+    // Apply any necessary recovery actions
+    let fixedSession = session;
+    if (validation.recoveryActions && validation.recoveryActions.length > 0) {
+      fixedSession = applyRecoveryActions(session, validation.recoveryActions);
+      console.log('Applied recovery actions to fix session data');
+    }
+
+    // Set the recovered data
+    setExamSession(fixedSession);
+    setExamConfig(fixedSession.examConfig);
+    setQuestions(recoveredQuestions);
+    setIsLoading(false);
+  };
+
+  const handleNewSession = () => {
+    // Continue with normal initialization
+    setIsLoading(false);
+  };
+
+  const handleNetworkRecovered = () => {
+    console.log('Network connection restored');
+    // Optionally sync any pending data
+  };
+
+  const handleOfflineModeEnabled = () => {
+    console.log('Offline mode enabled for exam');
+    // Update UI to show offline status
+  };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <AuthGuard allowedRoles={['student']}>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <Card className="w-full max-w-md">
+            <CardContent className="pt-6">
+              <div className="flex flex-col items-center space-y-4">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                <div className="text-center">
+                  <h3 className="text-lg font-semibold">Loading Exam</h3>
+                  <p className="text-sm text-gray-600">Preparing your exam session...</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </AuthGuard>
+    );
+  }
+
+  // Error state
+  if (error || !examConfig) {
+    return (
+      <AuthGuard allowedRoles={['student']}>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle className="text-red-600">Error</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-700 mb-4">{error || 'Failed to load exam configuration.'}</p>
+              <button
+                onClick={() => router.push('/exam/setup')}
+                className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
+              >
+                Return to Exam Setup
+              </button>
+            </CardContent>
+          </Card>
+        </div>
+      </AuthGuard>
+    );
+  }
+
+  // Render the appropriate exam mode component
   return (
     <AuthGuard allowedRoles={['student']}>
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-4xl mx-auto">
-          {/* Header with Timer */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h1 className="text-2xl font-bold">Test Mode</h1>
-              <div className={`text-lg font-mono font-bold px-4 py-2 rounded ${
-                isTimeRunningOut ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'
-              }`}>
-                {formatTime(timeRemaining)}
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-4 mb-4">
-              <span className="text-sm font-medium">
-                Question {currentQuestionIndex + 1} of {questions.length}
-              </span>
-              <Progress value={progress} className="flex-1" />
-              <span className="text-sm text-gray-600">
-                {answeredCount}/{questions.length} answered
-              </span>
-            </div>
-          </div>
-
-          {/* Question Card */}
-          <Card className="mb-6">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Question {currentQuestionIndex + 1}</CardTitle>
-                <span className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                  {currentQuestion.domain}
-                </span>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-lg mb-6">{currentQuestion.text}</p>
-
-              <RadioGroup 
-                value={selectedAnswer} 
-                onValueChange={handleAnswerSelect}
-              >
-                <div className="space-y-3">
-                  {currentQuestion.options.map((option, index) => (
-                    <div key={index} className="flex items-start space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
-                      <RadioGroupItem 
-                        value={index.toString()} 
-                        id={`option-${index}`}
-                        className="mt-1"
-                      />
-                      <Label 
-                        htmlFor={`option-${index}`} 
-                        className="flex-1 cursor-pointer"
-                      >
-                        {option}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </RadioGroup>
-
-              {/* Navigation Buttons */}
-              <div className="flex justify-between mt-8">
-                <Button 
-                  variant="outline"
-                  onClick={handlePrevious}
-                  disabled={currentQuestionIndex === 0}
-                >
-                  Previous
-                </Button>
-
-                <div className="space-x-3">
-                  {currentQuestionIndex < questions.length - 1 ? (
-                    <Button onClick={handleSaveAndNext}>
-                      Save & Next
-                    </Button>
-                  ) : (
-                    <Button 
-                      onClick={() => setShowSubmitDialog(true)}
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      Submit Exam
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Question Navigator */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Question Navigator</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-10 gap-2">
-                {questions.map((_, index) => {
-                  const isAnswered = answers.hasOwnProperty(index) || (index === currentQuestionIndex && selectedAnswer);
-                  const isCurrent = index === currentQuestionIndex;
-                  
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => {
-                        // Save current answer before navigating
-                        if (selectedAnswer) {
-                          setAnswers(prev => ({
-                            ...prev,
-                            [currentQuestionIndex]: parseInt(selectedAnswer)
-                          }));
-                        }
-                        setCurrentQuestionIndex(index);
-                        setSelectedAnswer(answers[index]?.toString() || '');
-                      }}
-                      className={`
-                        w-10 h-10 rounded text-sm font-medium border-2 transition-colors
-                        ${isCurrent 
-                          ? 'border-blue-500 bg-blue-500 text-white' 
-                          : isAnswered 
-                            ? 'border-green-500 bg-green-100 text-green-700 hover:bg-green-200' 
-                            : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
-                        }
-                      `}
-                    >
-                      {index + 1}
-                    </button>
-                  );
-                })}
-              </div>
-              
-              <div className="flex items-center gap-6 mt-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-blue-500 bg-blue-500 rounded"></div>
-                  <span>Current</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-green-500 bg-green-100 rounded"></div>
-                  <span>Answered</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-gray-300 bg-white rounded"></div>
-                  <span>Not Answered</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Submit Confirmation Dialog */}
-          {showSubmitDialog && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <Card className="w-full max-w-md">
-                <CardHeader>
-                  <CardTitle>Submit Exam?</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="mb-4">
-                    Are you sure you want to submit your exam? You have answered {answeredCount} out of {questions.length} questions.
-                  </p>
-                  <p className="text-sm text-gray-600 mb-6">
-                    Once submitted, you cannot make any changes to your answers.
-                  </p>
-                  <div className="flex gap-3">
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setShowSubmitDialog(false)}
-                      className="flex-1"
-                    >
-                      Cancel
-                    </Button>
-                    <Button 
-                      onClick={handleSubmitExam}
-                      className="flex-1 bg-green-600 hover:bg-green-700"
-                    >
-                      Submit
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+      <ExamErrorBoundary sessionId={sessionId}>
+        <NetworkErrorHandler
+          examSession={examSession}
+          questions={questions}
+          onNetworkRecovered={handleNetworkRecovered}
+          onOfflineModeEnabled={handleOfflineModeEnabled}
+          allowOfflineMode={true}
+        >
+          <SessionRecoveryDialog
+            isOpen={showRecoveryDialog}
+            onClose={closeRecoveryDialog}
+            onSessionRecovered={handleSessionRecovered}
+            onNewSession={handleNewSession}
+            currentSessionId={sessionId}
+          />
+          
+          {examConfig.type === 'practice' ? (
+            <PracticeMode
+              sessionId={sessionId}
+              examConfig={examConfig}
+              questions={questions}
+              onExamComplete={handleExamComplete}
+            />
+          ) : (
+            <TestMode
+              sessionId={sessionId}
+              examConfig={examConfig}
+              questions={questions}
+              onExamComplete={handleExamComplete}
+            />
           )}
-        </div>
-      </div>
+        </NetworkErrorHandler>
+      </ExamErrorBoundary>
     </AuthGuard>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -61,6 +61,7 @@ const knowledgeAreas = [
 
 export default function ExamSetupPage() {
   const router = useRouter();
+  const [selectedExamMode, setSelectedExamMode] = useState('practice'); // practice or test
   const [selectedExamType, setSelectedExamType] = useState('full-mock');
   const [selectedDomain, setSelectedDomain] = useState('');
   const [selectedKnowledgeArea, setSelectedKnowledgeArea] = useState('');
@@ -68,12 +69,46 @@ export default function ExamSetupPage() {
     showTimer: true,
     showProgress: true,
     allowReview: true,
-    showExplanations: true
+    showExplanations: true,
+    allowBookmarks: true
   });
+
+  // Effect to adjust settings based on selected mode
+  useEffect(() => {
+    if (selectedExamMode === 'test') {
+      // In test mode, timer is mandatory and explanations are disabled during exam
+      setExamSettings(prev => ({
+        ...prev,
+        showTimer: true,
+        showExplanations: false
+      }));
+    } else {
+      // In practice mode, restore default settings
+      setExamSettings(prev => ({
+        ...prev,
+        showExplanations: true
+      }));
+    }
+  }, [selectedExamMode]);
 
   const handleStartExam = () => {
     // Generate a unique session ID
     const sessionId = `exam_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Create exam configuration
+    const examConfig = {
+      id: sessionId,
+      type: selectedExamMode as 'practice' | 'test',
+      examType: selectedExamType as 'full-mock' | 'domain-quiz' | 'knowledge-area',
+      timeLimit: selectedExamMode === 'test' ? getSelectedExam()?.duration === '4 hours' ? 14400 : 
+                 getSelectedExam()?.duration === '1-2 hours' ? 7200 : 3600 : undefined,
+      settings: examSettings,
+      domain: selectedDomain || undefined,
+      knowledgeArea: selectedKnowledgeArea || undefined
+    };
+    
+    // Store exam config in sessionStorage for the exam page
+    sessionStorage.setItem(`examConfig_${sessionId}`, JSON.stringify(examConfig));
     
     // Navigate to the exam page with session ID
     router.push(`/exam/${sessionId}`);
@@ -115,9 +150,64 @@ export default function ExamSetupPage() {
               Set Up Your Exam
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Choose your exam type and configure your test settings. Take your time to review the options before starting.
+              Choose your exam mode and configure your test settings. Take your time to review the options before starting.
             </p>
           </div>
+
+          {/* Exam Mode Selection */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <BookOpen className="w-5 h-5" />
+                <span>Select Exam Mode</span>
+              </CardTitle>
+              <CardDescription>
+                Choose between practice mode for learning or test mode for assessment
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <RadioGroup value={selectedExamMode} onValueChange={setSelectedExamMode} className="space-y-4">
+                <div className="flex items-start space-x-3">
+                  <RadioGroupItem value="practice" id="practice" className="mt-1" />
+                  <Label htmlFor="practice" className="flex-1 cursor-pointer">
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <span className="font-semibold text-foreground">Practice Mode</span>
+                        <span className="bg-blue-100 text-blue-600 text-xs font-bold px-2 py-1 rounded">
+                          LEARNING
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Unlimited time with immediate feedback and explanations after each question. Perfect for learning and skill building.
+                      </p>
+                      <div className="mt-2 text-sm text-muted-foreground">
+                        <span className="font-medium">Features:</span> Immediate feedback, explanations, unlimited time, progress saving
+                      </div>
+                    </div>
+                  </Label>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <RadioGroupItem value="test" id="test" className="mt-1" />
+                  <Label htmlFor="test" className="flex-1 cursor-pointer">
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <span className="font-semibold text-foreground">Test Mode</span>
+                        <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded">
+                          ASSESSMENT
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Timed exam that simulates the real certification test experience. No immediate feedback during the exam.
+                      </p>
+                      <div className="mt-2 text-sm text-muted-foreground">
+                        <span className="font-medium">Features:</span> Time limits, no immediate feedback, final score, pass/fail status
+                      </div>
+                    </div>
+                  </Label>
+                </div>
+              </RadioGroup>
+            </CardContent>
+          </Card>
 
           {/* Exam Type Selection */}
           <Card>
@@ -227,7 +317,7 @@ export default function ExamSetupPage() {
             <CardHeader>
               <CardTitle>Exam Settings</CardTitle>
               <CardDescription>
-                Configure your exam experience
+                Configure your exam experience based on the selected mode
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -239,8 +329,12 @@ export default function ExamSetupPage() {
                     onCheckedChange={(checked) => 
                       setExamSettings(prev => ({ ...prev, showTimer: checked as boolean }))
                     }
+                    disabled={selectedExamMode === 'test'} // Timer is mandatory in test mode
                   />
-                  <Label htmlFor="showTimer">Show timer during exam</Label>
+                  <Label htmlFor="showTimer" className={selectedExamMode === 'test' ? 'text-muted-foreground' : ''}>
+                    Show timer during exam
+                    {selectedExamMode === 'test' && <span className="text-xs ml-1">(Required in test mode)</span>}
+                  </Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Checkbox 
@@ -269,10 +363,37 @@ export default function ExamSetupPage() {
                     onCheckedChange={(checked) => 
                       setExamSettings(prev => ({ ...prev, showExplanations: checked as boolean }))
                     }
+                    disabled={selectedExamMode === 'test'} // Explanations not shown during test mode
                   />
-                  <Label htmlFor="showExplanations">Show explanations after</Label>
+                  <Label htmlFor="showExplanations" className={selectedExamMode === 'test' ? 'text-muted-foreground' : ''}>
+                    Show explanations immediately
+                    {selectedExamMode === 'test' && <span className="text-xs ml-1">(Only after completion in test mode)</span>}
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="allowBookmarks" 
+                    checked={examSettings.allowBookmarks}
+                    onCheckedChange={(checked) => 
+                      setExamSettings(prev => ({ ...prev, allowBookmarks: checked as boolean }))
+                    }
+                  />
+                  <Label htmlFor="allowBookmarks">Enable question bookmarks</Label>
                 </div>
               </div>
+              
+              {/* Bookmark explanation */}
+              {examSettings.allowBookmarks && (
+                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-start space-x-2">
+                    <BookOpen className="w-4 h-4 text-blue-600 mt-0.5" />
+                    <div className="text-sm text-blue-800">
+                      <span className="font-medium">Bookmark Feature:</span> Mark questions you want to review later. 
+                      Bookmarked questions will be highlighted in the question navigator, and you can filter to show only bookmarked questions.
+                    </div>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -287,12 +408,22 @@ export default function ExamSetupPage() {
                   <h4 className="font-semibold mb-2">Selected Exam</h4>
                   <div className="space-y-2">
                     <div className="flex justify-between">
+                      <span>Mode:</span>
+                      <span className="capitalize font-medium">
+                        {selectedExamMode}
+                        {selectedExamMode === 'practice' && <span className="text-blue-200 ml-1">(Learning)</span>}
+                        {selectedExamMode === 'test' && <span className="text-red-200 ml-1">(Assessment)</span>}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
                       <span>Type:</span>
                       <span>{getSelectedExam()?.name}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Duration:</span>
-                      <span>{getSelectedExam()?.duration}</span>
+                      <span>
+                        {selectedExamMode === 'practice' ? 'Unlimited' : getSelectedExam()?.duration}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span>Questions:</span>
@@ -315,16 +446,25 @@ export default function ExamSetupPage() {
                 <div>
                   <h4 className="font-semibold mb-2">Settings</h4>
                   <div className="space-y-1 text-sm">
-                    {Object.entries(examSettings).map(([key, value]) => (
-                      <div key={key} className="flex items-center space-x-2">
-                        {value ? (
-                          <CheckCircle className="w-4 h-4 text-green-300" />
-                        ) : (
-                          <AlertCircle className="w-4 h-4 text-yellow-300" />
-                        )}
-                        <span className="capitalize">{key.replace(/([A-Z])/g, ' $1').toLowerCase()}</span>
-                      </div>
-                    ))}
+                    {Object.entries(examSettings).map(([key, value]) => {
+                      const isDisabledInTestMode = selectedExamMode === 'test' && (key === 'showExplanations');
+                      const isMandatoryInTestMode = selectedExamMode === 'test' && key === 'showTimer';
+                      
+                      return (
+                        <div key={key} className="flex items-center space-x-2">
+                          {value || isMandatoryInTestMode ? (
+                            <CheckCircle className="w-4 h-4 text-green-300" />
+                          ) : (
+                            <AlertCircle className="w-4 h-4 text-yellow-300" />
+                          )}
+                          <span className="capitalize">
+                            {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
+                            {isDisabledInTestMode && <span className="text-yellow-200 ml-1">(After completion)</span>}
+                            {isMandatoryInTestMode && <span className="text-green-200 ml-1">(Required)</span>}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -357,10 +497,24 @@ export default function ExamSetupPage() {
                 <div className="text-sm text-yellow-800">
                   <h4 className="font-semibold mb-1">Important Notes:</h4>
                   <ul className="space-y-1">
-                    <li>• You cannot pause the exam once started</li>
-                    <li>• Ensure you have a stable internet connection</li>
-                    <li>• Close other browser tabs to avoid distractions</li>
-                    <li>• Your progress will be saved automatically</li>
+                    {selectedExamMode === 'practice' ? (
+                      <>
+                        <li>• Practice mode allows unlimited time and immediate feedback</li>
+                        <li>• You can pause and resume your progress at any time</li>
+                        <li>• Explanations will be shown after each question</li>
+                        <li>• Your progress will be saved automatically</li>
+                        <li>• Use bookmarks to mark questions for review</li>
+                      </>
+                    ) : (
+                      <>
+                        <li>• Test mode simulates the real certification exam</li>
+                        <li>• You cannot pause the exam once started</li>
+                        <li>• No immediate feedback or explanations during the exam</li>
+                        <li>• Time limit will be strictly enforced</li>
+                        <li>• Ensure you have a stable internet connection</li>
+                        <li>• Close other browser tabs to avoid distractions</li>
+                      </>
+                    )}
                   </ul>
                 </div>
               </div>
