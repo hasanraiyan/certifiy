@@ -58,7 +58,7 @@ export default function AdminLayout({
   const pathname = usePathname();
 
   return (
-    <div className="flex min-h-screen bg-muted/30">
+    <div className="min-h-screen bg-muted/30">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div 
@@ -69,9 +69,9 @@ export default function AdminLayout({
         </div>
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar - Fixed on desktop */}
       <aside className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-border transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0
+        fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-border transform transition-transform duration-300 ease-in-out lg:translate-x-0
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <div className="flex flex-col h-full">
@@ -82,7 +82,7 @@ export default function AdminLayout({
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-2">
+          <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
             {navigation.map((item) => {
               const isActive = pathname === item.href;
               return (
@@ -118,8 +118,8 @@ export default function AdminLayout({
         </div>
       </aside>
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col lg:ml-0">
+      {/* Main content - Offset by sidebar width on desktop */}
+      <div className="lg:ml-64">
         {/* Mobile header */}
         <header className="lg:hidden bg-white border-b border-border px-4 py-3">
           <div className="flex items-center justify-between">
@@ -139,7 +139,7 @@ export default function AdminLayout({
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-6 lg:p-8">
+        <main className="min-h-screen p-6 lg:p-8">
           {children}
         </main>
       </div>

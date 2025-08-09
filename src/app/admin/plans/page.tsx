@@ -161,7 +161,7 @@ export default function PlansManagement() {
   const toggleFeature = (feature: string) => {
     setNewPlan(prev => ({
       ...prev,
-      features: prev.features?.includes(feature) 
+      features: prev.features?.includes(feature)
         ? prev.features.filter(f => f !== feature)
         : [...(prev.features || []), feature]
     }));
@@ -282,11 +282,11 @@ export default function PlansManagement() {
                 </div>
               </div>
             </CardContent>
-            
+
             <div className="p-4 bg-muted/30 rounded-b-xl border-t mt-auto">
-              <Button 
-                variant="outline" 
-                className="w-full" 
+              <Button
+                variant="outline"
+                className="w-full"
                 onClick={() => openEditDrawer(plan)}
               >
                 Edit Plan
@@ -316,23 +316,23 @@ export default function PlansManagement() {
             <div className="space-y-4">
               <div>
                 <Label htmlFor="planName" className="font-medium text-sm">Plan Name</Label>
-                <Input 
-                  id="planName" 
-                  placeholder="e.g., Premium Plan" 
-                  value={newPlan.name || ''} 
-                  onChange={(e) => setNewPlan(prev => ({...prev, name: e.target.value}))}
-                  className="w-full mt-1" 
+                <Input
+                  id="planName"
+                  placeholder="e.g., Premium Plan"
+                  value={newPlan.name || ''}
+                  onChange={(e) => setNewPlan(prev => ({ ...prev, name: e.target.value }))}
+                  className="w-full mt-1"
                 />
               </div>
-              
+
               <div>
                 <Label htmlFor="planDescription" className="font-medium text-sm">Description</Label>
-                <Textarea 
-                  id="planDescription" 
-                  placeholder="Brief description of the plan..." 
-                  value={newPlan.description || ''} 
-                  onChange={(e) => setNewPlan(prev => ({...prev, description: e.target.value}))}
-                  className="w-full mt-1" 
+                <Textarea
+                  id="planDescription"
+                  placeholder="Brief description of the plan..."
+                  value={newPlan.description || ''}
+                  onChange={(e) => setNewPlan(prev => ({ ...prev, description: e.target.value }))}
+                  className="w-full mt-1"
                   rows={3}
                 />
               </div>
@@ -344,19 +344,19 @@ export default function PlansManagement() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="price" className="font-medium text-sm">Price ($)</Label>
-                  <Input 
-                    id="price" 
-                    type="number" 
-                    value={newPlan.price || 0} 
-                    onChange={(e) => setNewPlan(prev => ({...prev, price: parseFloat(e.target.value) || 0}))}
-                    className="w-full mt-1" 
+                  <Input
+                    id="price"
+                    type="number"
+                    value={newPlan.price || 0}
+                    onChange={(e) => setNewPlan(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
+                    className="w-full mt-1"
                   />
                 </div>
                 <div>
                   <Label htmlFor="billing" className="font-medium text-sm">Billing Period</Label>
-                  <Select 
-                    value={newPlan.billingPeriod || 'monthly'} 
-                    onValueChange={(value: 'monthly' | 'yearly') => setNewPlan(prev => ({...prev, billingPeriod: value}))}
+                  <Select
+                    value={newPlan.billingPeriod || 'monthly'}
+                    onValueChange={(value: 'monthly' | 'yearly') => setNewPlan(prev => ({ ...prev, billingPeriod: value }))}
                   >
                     <SelectTrigger id="billing" className="w-full mt-1">
                       <SelectValue />
@@ -373,12 +373,12 @@ export default function PlansManagement() {
             {/* Plan Settings */}
             <div className="space-y-4">
               <h4 className="font-semibold text-foreground">Plan Settings</h4>
-              
+
               <div>
                 <Label htmlFor="status" className="font-medium text-sm">Status</Label>
-                <Select 
-                  value={newPlan.status || 'Draft'} 
-                  onValueChange={(value: 'Active' | 'Draft' | 'Archived') => setNewPlan(prev => ({...prev, status: value}))}
+                <Select
+                  value={newPlan.status || 'Draft'}
+                  onValueChange={(value: 'Active' | 'Draft' | 'Archived') => setNewPlan(prev => ({ ...prev, status: value }))}
                 >
                   <SelectTrigger id="status" className="w-full mt-1">
                     <SelectValue />
@@ -393,9 +393,9 @@ export default function PlansManagement() {
 
               <div>
                 <Label htmlFor="testAccess" className="font-medium text-sm">Test Access Level</Label>
-                <Select 
-                  value={newPlan.testAccess || 'limited'} 
-                  onValueChange={(value: 'limited' | 'full') => setNewPlan(prev => ({...prev, testAccess: value}))}
+                <Select
+                  value={newPlan.testAccess || 'limited'}
+                  onValueChange={(value: 'limited' | 'full') => setNewPlan(prev => ({ ...prev, testAccess: value }))}
                 >
                   <SelectTrigger id="testAccess" className="w-full mt-1">
                     <SelectValue />
@@ -409,9 +409,9 @@ export default function PlansManagement() {
 
               <div>
                 <Label htmlFor="support" className="font-medium text-sm">Support Level</Label>
-                <Select 
-                  value={newPlan.supportLevel || 'basic'} 
-                  onValueChange={(value: 'basic' | 'priority' | 'premium') => setNewPlan(prev => ({...prev, supportLevel: value}))}
+                <Select
+                  value={newPlan.supportLevel || 'basic'}
+                  onValueChange={(value: 'basic' | 'priority' | 'premium') => setNewPlan(prev => ({ ...prev, supportLevel: value }))}
                 >
                   <SelectTrigger id="support" className="w-full mt-1">
                     <SelectValue />
@@ -425,10 +425,10 @@ export default function PlansManagement() {
               </div>
 
               <div className="flex items-center space-x-2">
-                <Switch 
-                  id="popular" 
+                <Switch
+                  id="popular"
                   checked={newPlan.isPopular || false}
-                  onCheckedChange={(checked) => setNewPlan(prev => ({...prev, isPopular: checked}))}
+                  onCheckedChange={(checked) => setNewPlan(prev => ({ ...prev, isPopular: checked }))}
                 />
                 <Label htmlFor="popular" className="text-sm">Mark as "Most Popular"</Label>
               </div>
@@ -438,7 +438,7 @@ export default function PlansManagement() {
             <div className="space-y-4">
               <h4 className="font-semibold text-foreground">Plan Features</h4>
               <p className="text-sm text-muted-foreground">Select the features included in this plan:</p>
-              
+
               <div className="space-y-2 max-h-60 overflow-y-auto border rounded-lg p-4">
                 {planFeatures.map((feature) => (
                   <div key={feature} className="flex items-center space-x-2">
@@ -453,7 +453,7 @@ export default function PlansManagement() {
                   </div>
                 ))}
               </div>
-              
+
               <p className="text-xs text-muted-foreground">
                 Selected: {newPlan.features?.length || 0} features
               </p>
