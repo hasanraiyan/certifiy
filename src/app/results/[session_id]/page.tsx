@@ -1,311 +1,263 @@
+
 'use client';
 
-import { useParams } from 'next/navigation';
-import Link from 'next/link';
+import { useState, useMemo } from 'react';
 import { AuthGuard } from '@/components/auth/auth-guard';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Sheet, SheetContent, SheetHeader, SheetFooter, SheetTitle } from '@/components/ui/sheet';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Plus, X } from 'lucide-react';
 
-interface QuestionResult {
-  id: string;
-  text: string;
-  options: string[];
-  correctAnswer: number;
-  userAnswer: number | null;
-  explanation: string;
-  domain: string;
-  isCorrect: boolean;
+// --- TYPES AND MOCK DATA ---
+interface Student {
+  id: number;
+  name: string;
+  email: string;
+  plan: 'Free' | 'Full Access';
+  status: 'Active' | 'Suspended';
+  ltv: number;
+  lastActive: string;
+  joinDate: string;
 }
 
-export default function TestResultsPage() {
-  const params = useParams();
-  const sessionId = params.session_id as string;
+const mockStudents: Student[] = [
+  { id: 1, name: 'John Student', email: 'student@example.com', plan: 'Full Access', status: 'Active', ltv: 279.00, lastActive: '2h ago', joinDate: '3 months ago' },
+  { id: 2, name: 'Sarah Wilson', email: 'sarah.wilson@example.com', plan: 'Free', status: 'Active', ltv: 0.00, lastActive: '1d ago', joinDate: '1 month ago' },
+  { id: 3, name: 'Michael Chen', email: 'michael.chen@example.com', plan: 'Full Access', status: 'Suspended', ltv: 49.00, lastActive: '3w ago', joinDate: '6 months ago' },
+  { id: 4, name: 'Emily Rodriguez', email: 'emily.r@example.com', plan: 'Full Access', status: 'Active', ltv: 279.00, lastActive: '5h ago', joinDate: '2 weeks ago' },
+  { id: 5, name: 'David Lee', email: 'david.lee@example.com', plan: 'Free', status: 'Active', ltv: 0.00, lastActive: '2d ago', joinDate: '1 week ago' },
+];
 
-  // Mock results data
-  const testResults = {
-    sessionId,
-    testName: 'PMP Mock Exam #1',
-    completedAt: '2025-01-15T14:30:00Z',
-    duration: '3h 45m',
-    totalQuestions: 180,
-    correctAnswers: 142,
-    score: 79,
-    passingScore: 75,
-    passed: true,
-    domainBreakdown: [
-      { domain: 'People', total: 42, correct: 35, percentage: 83 },
-      { domain: 'Process', total: 50, correct: 38, percentage: 76 },
-      { domain: 'Business Environment', total: 88, correct: 69, percentage: 78 }
-    ]
-  };
+const activityFeed = [
+    { date: 'Jan 15, 2:30pm', action: 'Completed', details: 'Mock Exam #2 (Score: 88%)' },
+    { date: 'Jan 10, 4:15pm', action: 'Purchased', details: 'Full Access - Yearly' },
+    { date: 'Jan 8, 11:00am', action: 'Completed', details: 'Agile Practice Test (Score: 75%)' },
+];
 
-  // Mock question results
-  const questionResults: QuestionResult[] = [
-    {
-      id: '1',
-      text: 'What is the primary purpose of a project charter?',
-      options: [
-        'To define the project scope in detail',
-        'To formally authorize the project and provide the project manager with authority',
-        'To create the work breakdown structure',
-        'To establish the project budget'
-      ],
-      correctAnswer: 1,
-      userAnswer: 1,
-      explanation: 'The project charter formally authorizes the project and gives the project manager the authority to apply organizational resources to project activities.',
-      domain: 'Integration Management',
-      isCorrect: true
-    },
-    {
-      id: '2',
-      text: 'Which of the following is NOT a characteristic of a project?',
-      options: [
-        'Temporary endeavor',
-        'Creates a unique product or service',
-        'Ongoing operations',
-        'Has a definite beginning and end'
-      ],
-      correctAnswer: 2,
-      userAnswer: 0,
-      explanation: 'Projects are temporary endeavors with a definite beginning and end, creating unique products or services. Ongoing operations are not projects.',
-      domain: 'Project Framework',
-      isCorrect: false
-    }
-  ];
+const plans = ['Free', 'Full Access'];
 
-  const scoreColor = testResults.passed ? 'text-green-600' : 'text-red-600';
-  const scoreBgColor = testResults.passed ? 'bg-green-100' : 'bg-red-100';
+// --- COMPONENT ---
+export default function StudentManagementPage() {
+    const [students] = useState<Student[]>(mockStudents);
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [isCreatingNewUser, setIsCreatingNewUser] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+    const [newUser, setNewUser] = useState({ name: '', email: '', plan: 'Free' as 'Free' | 'Full Access' });
 
-  return (
-    <AuthGuard allowedRoles={['student']}>
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-6xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Test Results</h1>
-            <p className="text-gray-600">{testResults.testName} • Completed on {new Date(testResults.completedAt).toLocaleDateString()}</p>
-          </div>
+    const filteredStudents = useMemo(() => {
+        if (!searchTerm) return students;
+        return students.filter(s =>
+            s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            s.email.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }, [students, searchTerm]);
 
-          {/* Overall Score Card */}
-          <Card className="mb-8">
-            <CardContent className="p-8">
-              <div className="text-center">
-                <div className={`inline-flex items-center justify-center w-32 h-32 rounded-full ${scoreBgColor} mb-4`}>
-                  <span className={`text-4xl font-bold ${scoreColor}`}>
-                    {testResults.score}%
-                  </span>
+    const openCreateDrawer = () => {
+        setIsCreatingNewUser(true);
+        setSelectedStudent(null);
+        setNewUser({ name: '', email: '', plan: 'Free' });
+        setIsDrawerOpen(true);
+    };
+
+    const openDetailDrawer = (student: Student) => {
+        setIsCreatingNewUser(false);
+        setSelectedStudent(student);
+        setIsDrawerOpen(true);
+    };
+
+    const closeDrawer = () => setIsDrawerOpen(false);
+    
+    const getInitials = (name: string) => name.match(/\b(\w)/g)?.join('').toUpperCase() || '';
+    
+    // Updated functions to provide correct variants for badges
+    const getPlanBadgeVariant = (plan: Student['plan']) => (plan === 'Free' ? 'secondary' : 'default');
+    const getStatusBadgeVariant = (status: Student['status']) => (status === 'Active' ? 'default' : 'destructive');
+
+    return (
+        <AuthGuard allowedRoles={['admin', 'super_admin']}>
+            {/* Page Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-8">
+                <div>
+                    <h1 className="text-3xl font-bold text-foreground">Student Management</h1>
+                    <p className="mt-1 text-muted-foreground">View, manage, and support your students.</p>
                 </div>
-                
-                <h2 className="text-2xl font-bold mb-2">
-                  {testResults.passed ? 'Congratulations! You Passed!' : 'Keep Studying!'}
-                </h2>
-                
-                <p className="text-gray-600 mb-6">
-                  You scored {testResults.correctAnswers} out of {testResults.totalQuestions} questions correctly
-                </p>
+                <Button onClick={openCreateDrawer} className="w-full sm:w-auto">
+                    <Plus className="w-5 h-5 mr-2" />
+                    Add Student
+                </Button>
+            </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-900">{testResults.score}%</div>
-                    <div className="text-sm text-gray-600">Your Score</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-900">{testResults.passingScore}%</div>
-                    <div className="text-sm text-gray-600">Passing Score</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-900">{testResults.correctAnswers}</div>
-                    <div className="text-sm text-gray-600">Correct</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-900">{testResults.duration}</div>
-                    <div className="text-sm text-gray-600">Duration</div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="domains">Domain Breakdown</TabsTrigger>
-              <TabsTrigger value="questions">Question Review</TabsTrigger>
-            </TabsList>
-
-            {/* Overview Tab */}
-            <TabsContent value="overview">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* KPI Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
                 <Card>
-                  <CardHeader>
-                    <CardTitle>Performance Summary</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <span>Overall Score</span>
-                        <span className="font-bold">{testResults.score}%</span>
-                      </div>
-                      <Progress value={testResults.score} className="h-2" />
-                      
-                      <div className="pt-4 space-y-2">
-                        <div className="flex justify-between">
-                          <span>Correct Answers:</span>
-                          <span className="font-medium text-green-600">{testResults.correctAnswers}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Incorrect Answers:</span>
-                          <span className="font-medium text-red-600">{testResults.totalQuestions - testResults.correctAnswers}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Total Questions:</span>
-                          <span className="font-medium">{testResults.totalQuestions}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
+                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Total Students</CardTitle></CardHeader>
+                    <CardContent><p className="text-3xl font-bold">{students.length}</p></CardContent>
                 </Card>
-
                 <Card>
-                  <CardHeader>
-                    <CardTitle>Next Steps</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {testResults.passed ? (
-                        <>
-                          <p className="text-green-600 font-medium">Great job! You&apos;re ready for the PMP exam.</p>
-                          <ul className="space-y-2 text-sm">
-                            <li>• Review any incorrect answers</li>
-                            <li>• Take additional practice tests</li>
-                            <li>• Schedule your official PMP exam</li>
-                            <li>• Continue studying weak areas</li>
-                          </ul>
-                        </>
-                      ) : (
-                        <>
-                          <p className="text-orange-600 font-medium">Keep studying! Focus on your weak areas.</p>
-                          <ul className="space-y-2 text-sm">
-                            <li>• Review all incorrect answers</li>
-                            <li>• Focus on domains with low scores</li>
-                            <li>• Take more practice tests</li>
-                            <li>• Study the PMBOK Guide thoroughly</li>
-                          </ul>
-                        </>
-                      )}
-                      
-                      <div className="pt-4 space-y-2">
-                        <Button asChild className="w-full">
-                          <Link href="/exam/setup">Take Another Test</Link>
-                        </Button>
-                        <Button variant="outline" asChild className="w-full">
-                          <Link href="/dashboard">Back to Dashboard</Link>
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
+                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Active Subscribers</CardTitle></CardHeader>
+                    <CardContent><p className="text-3xl font-bold">{students.filter(s => s.plan !== 'Free').length}</p></CardContent>
                 </Card>
-              </div>
-            </TabsContent>
+                <Card>
+                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">New This Month</CardTitle></CardHeader>
+                    <CardContent><p className="text-3xl font-bold">12</p></CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Avg. Tests Taken</CardTitle></CardHeader>
+                    <CardContent><p className="text-3xl font-bold">8.4</p></CardContent>
+                </Card>
+            </div>
 
-            {/* Domain Breakdown Tab */}
-            <TabsContent value="domains">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Performance by Domain</CardTitle>
+            {/* Student Directory Table */}
+            <Card className='p-0 m-0'>
+                <CardHeader className='p-0 m-0'>
+                    <Input 
+                        type="text" 
+                        value={searchTerm} 
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder="Search by name or email..." 
+                        className="w-full max-w-sm"
+                    />
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    {testResults.domainBreakdown.map((domain, index) => (
-                      <div key={index}>
-                        <div className="flex justify-between items-center mb-2">
-                          <h4 className="font-medium">{domain.domain}</h4>
-                          <span className="text-sm text-gray-600">
-                            {domain.correct}/{domain.total} ({domain.percentage}%)
-                          </span>
-                        </div>
-                        <Progress value={domain.percentage} className="h-2" />
-                        <p className="text-sm text-gray-600 mt-1">
-                          {domain.percentage >= 75 ? 'Strong performance' : 
-                           domain.percentage >= 60 ? 'Needs improvement' : 'Requires significant study'}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
+                <CardContent className="p-0">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className="px-4 py-3.5 text-left text-sm font-medium text-muted-foreground">Student</TableHead>
+                                <TableHead className="px-4 py-3.5 text-left text-sm font-medium text-muted-foreground">Plan</TableHead>
+                                <TableHead className="px-4 py-3.5 text-left text-sm font-medium text-muted-foreground">Status</TableHead>
+                                <TableHead className="px-4 py-3.5 text-right text-sm font-medium text-muted-foreground">LTV</TableHead>
+                                <TableHead className="px-4 py-3.5 text-left text-sm font-medium text-muted-foreground">Last Active</TableHead>
+                                <TableHead className="relative px-4 py-3.5"><span className="sr-only">Actions</span></TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {filteredStudents.map(student => (
+                                <TableRow key={student.id}>
+                                    <TableCell className="px-4 py-3 align-middle">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0">{getInitials(student.name)}</div>
+                                            <div>
+                                                <div className="font-medium text-foreground">{student.name}</div>
+                                                <div className="text-xs text-muted-foreground">{student.email}</div>
+                                            </div>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="px-4 py-3 align-middle"><Badge variant={getPlanBadgeVariant(student.plan)}>{student.plan}</Badge></TableCell>
+                                    <TableCell className="px-4 py-3 align-middle"><Badge variant={getStatusBadgeVariant(student.status)}>{student.status}</Badge></TableCell>
+                                    <TableCell className="px-4 py-3 text-right align-middle font-mono text-sm tabular-nums text-foreground">${student.ltv.toFixed(2)}</TableCell>
+                                    <TableCell className="px-4 py-3 align-middle text-muted-foreground text-sm">{student.lastActive}</TableCell>
+                                    <TableCell className="px-4 py-3 text-right align-middle">
+                                        <Button variant="ghost" size="sm" onClick={() => openDetailDrawer(student)}>View</Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
                 </CardContent>
-              </Card>
-            </TabsContent>
+            </Card>
 
-            {/* Question Review Tab */}
-            <TabsContent value="questions">
-              <div className="space-y-4">
-                {questionResults.map((question, index) => (
-                  <Card key={question.id}>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-lg">Question {index + 1}</CardTitle>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                            {question.domain}
-                          </span>
-                          <span className={`text-sm px-2 py-1 rounded font-medium ${
-                            question.isCorrect 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-red-100 text-red-800'
-                          }`}>
-                            {question.isCorrect ? 'Correct' : 'Incorrect'}
-                          </span>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-lg mb-4">{question.text}</p>
-                      
-                      <div className="space-y-2 mb-4">
-                        {question.options.map((option, optionIndex) => {
-                          let optionClass = "p-3 border rounded";
-                          
-                          if (optionIndex === question.correctAnswer) {
-                            optionClass += " bg-green-50 border-green-200";
-                          } else if (question.userAnswer === optionIndex && optionIndex !== question.correctAnswer) {
-                            optionClass += " bg-red-50 border-red-200";
-                          }
-
-                          return (
-                            <div key={optionIndex} className={optionClass}>
-                              <div className="flex items-center justify-between">
-                                <span>{option}</span>
-                                <div className="flex items-center gap-2">
-                                  {optionIndex === question.correctAnswer && (
-                                    <span className="text-green-600 font-medium">✓ Correct</span>
-                                  )}
-                                  {question.userAnswer === optionIndex && optionIndex !== question.correctAnswer && (
-                                    <span className="text-red-600 font-medium">Your Answer</span>
-                                  )}
-                                  {question.userAnswer === optionIndex && optionIndex === question.correctAnswer && (
-                                    <span className="text-green-600 font-medium">Your Answer ✓</span>
-                                  )}
+            {/* Editor/Detail Drawer */}
+            <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+                <SheetContent className="w-full max-w-xl sm:max-w-xl p-0 flex flex-col bg-muted/30">
+                    {!isCreatingNewUser && selectedStudent ? (
+                        <>
+                            {/* --- VIEW DETAILS TEMPLATE --- */}
+                            <div className="bg-white p-6 border-b border-border flex-shrink-0">
+                                <div className="flex justify-between items-start">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-lg shrink-0">
+                                            {getInitials(selectedStudent.name)}
+                                        </div>
+                                        <div>
+                                            <h2 className="text-xl font-bold">{selectedStudent.name}</h2>
+                                            <p className="text-sm text-muted-foreground">{selectedStudent.email}</p>
+                                        </div>
+                                    </div>
+                                    <Button variant="ghost" size="icon" onClick={closeDrawer}><X className="w-5 h-5" /></Button>
                                 </div>
-                              </div>
+                                <div className="mt-4 flex flex-wrap gap-4">
+                                    <Button variant="destructive" className="bg-destructive/10 text-destructive hover:bg-destructive/20">Suspend User</Button>
+                                    <Button variant="secondary">Send Password Reset</Button>
+                                </div>
                             </div>
-                          );
-                        })}
-                      </div>
-
-                      <div className="bg-blue-50 border border-blue-200 rounded p-4">
-                        <h5 className="font-medium mb-2">Explanation:</h5>
-                        <p className="text-gray-700">{question.explanation}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </div>
-    </AuthGuard>
-  );
+                            <div className="flex-grow p-6 space-y-6 overflow-y-auto">
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                                    <Card className="p-3"><p className="text-xs text-muted-foreground">LTV</p><p className="font-bold text-lg">${selectedStudent.ltv.toFixed(2)}</p></Card>
+                                    <Card className="p-3"><p className="text-xs text-muted-foreground">Avg. Score</p><p className="font-bold text-lg">82%</p></Card>
+                                    <Card className="p-3"><p className="text-xs text-muted-foreground">Tests Taken</p><p className="font-bold text-lg">14</p></Card>
+                                    <Card className="p-3"><p className="text-xs text-muted-foreground">Joined</p><p className="font-bold text-lg">{selectedStudent.joinDate}</p></Card>
+                                </div>
+                                <Card>
+                                    <CardHeader><CardTitle>Activity Timeline</CardTitle></CardHeader>
+                                    <CardContent className="space-y-4">
+                                        {activityFeed.map((activity, index) => (
+                                            <div key={index} className="flex gap-3 text-sm">
+                                                <div className="font-semibold text-muted-foreground w-28 shrink-0">{activity.date}</div>
+                                                <div><strong className="font-semibold">{activity.action}</strong> {activity.details}</div>
+                                            </div>
+                                        ))}
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardHeader><CardTitle>Manage Account</CardTitle></CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div>
+                                            <Label htmlFor="plan" className="font-medium text-sm">Change Plan</Label>
+                                            <Select defaultValue={selectedStudent.plan}>
+                                                <SelectTrigger id="plan" className="w-full mt-1 bg-white">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {plans.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div>
+                                            <Label className="font-medium text-sm">Admin Notes</Label>
+                                            <Textarea rows={3} className="w-full mt-1 bg-white" placeholder="Add internal notes for this user..." />
+                                        </div>
+                                        <Button className="bg-primary/10 text-primary hover:bg-primary/20">Save Changes</Button>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            {/* --- CREATE NEW USER TEMPLATE --- */}
+                            <SheetHeader className="bg-white p-6 border-b border-border flex-shrink-0 flex flex-row justify-between items-center">
+                                <SheetTitle className="text-2xl font-bold">Add New Student</SheetTitle>
+                                <Button variant="ghost" size="icon" onClick={closeDrawer}><X className="w-5 h-5" /></Button>
+                            </SheetHeader>
+                            <div className="flex-grow p-8 space-y-6 overflow-y-auto">
+                                <div><Label htmlFor="newName" className="font-medium text-sm">Full Name</Label><Input type="text" id="newName" value={newUser.name} onChange={e => setNewUser({...newUser, name: e.target.value})} className="w-full mt-1" placeholder="John Doe" /></div>
+                                <div><Label htmlFor="newEmail" className="font-medium text-sm">Email Address</Label><Input type="email" id="newEmail" value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})} className="w-full mt-1" placeholder="john.doe@example.com" /></div>
+                                <div>
+                                    <Label htmlFor="newPlan" className="font-medium text-sm">Assign Plan</Label>
+                                    <Select value={newUser.plan} onValueChange={(value: 'Free' | 'Full Access') => setNewUser({...newUser, plan: value})}>
+                                        <SelectTrigger id="newPlan" className="w-full mt-1 bg-white"><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            {plans.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="flex items-center gap-3 pt-2"><Checkbox id="sendInvite" /><Label htmlFor="sendInvite" className="text-sm font-normal text-muted-foreground">Send welcome email with password setup link</Label></div>
+                            </div>
+                            <SheetFooter className="bg-white p-4 border-t border-border flex-shrink-0 flex justify-end gap-4">
+                                <Button variant="ghost" onClick={closeDrawer}>Cancel</Button>
+                                <Button>Create Student</Button>
+                            </SheetFooter>
+                        </>
+                    )}
+                </SheetContent>
+            </Sheet>
+        </AuthGuard>
+    );
 }

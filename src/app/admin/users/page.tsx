@@ -1,394 +1,271 @@
+
+// src/app/admin/users/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { AuthGuard } from '@/components/auth/auth-guard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Sheet, SheetContent, SheetHeader, SheetFooter, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Plus, X } from 'lucide-react';
 
-interface StudentUser {
-  id: string;
+// --- TYPES AND MOCK DATA ---
+interface Student {
+  id: number;
   name: string;
   email: string;
-  joinDate: string;
+  plan: 'Free' | 'Full Access';
+  status: 'Active' | 'Suspended';
+  ltv: number;
   lastActive: string;
-  currentPlan: string;
-  testsCompleted: number;
-  averageScore: number;
-  totalSpent: number;
-  status: 'active' | 'inactive' | 'suspended';
+  joinDate: string;
 }
 
-export default function StudentManagement() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterPlan, setFilterPlan] = useState('all');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [selectedUser, setSelectedUser] = useState<StudentUser | null>(null);
+const mockStudents: Student[] = [
+  { id: 1, name: 'John Student', email: 'student@example.com', plan: 'Full Access', status: 'Active', ltv: 279.00, lastActive: '2h ago', joinDate: '3 months ago' },
+  { id: 2, name: 'Sarah Wilson', email: 'sarah.wilson@example.com', plan: 'Free', status: 'Active', ltv: 0.00, lastActive: '1d ago', joinDate: '1 month ago' },
+  { id: 3, name: 'Michael Chen', email: 'michael.chen@example.com', plan: 'Full Access', status: 'Suspended', ltv: 49.00, lastActive: '3w ago', joinDate: '6 months ago' },
+  { id: 4, name: 'Emily Rodriguez', email: 'emily.r@example.com', plan: 'Full Access', status: 'Active', ltv: 279.00, lastActive: '5h ago', joinDate: '2 weeks ago' },
+  { id: 5, name: 'David Lee', email: 'david.lee@example.com', plan: 'Free', status: 'Active', ltv: 0.00, lastActive: '2d ago', joinDate: '1 week ago' },
+];
 
-  // Mock student users data
-  const students: StudentUser[] = [
-    {
-      id: '1',
-      name: 'John Doe',
-      email: 'john.doe@example.com',
-      joinDate: '2024-11-15',
-      lastActive: '2025-01-14',
-      currentPlan: 'Premium Bundle',
-      testsCompleted: 12,
-      averageScore: 78,
-      totalSpent: 99,
-      status: 'active'
-    },
-    {
-      id: '2',
-      name: 'Sarah Wilson',
-      email: 'sarah.wilson@example.com',
-      joinDate: '2024-12-01',
-      lastActive: '2025-01-15',
-      currentPlan: 'Pay-per-Test',
-      testsCompleted: 3,
-      averageScore: 85,
-      totalSpent: 57,
-      status: 'active'
-    },
-    {
-      id: '3',
-      name: 'Michael Chen',
-      email: 'michael.chen@example.com',
-      joinDate: '2024-10-20',
-      lastActive: '2024-12-30',
-      currentPlan: 'Free Tier',
-      testsCompleted: 8,
-      averageScore: 72,
-      totalSpent: 0,
-      status: 'inactive'
-    },
-    {
-      id: '4',
-      name: 'Emily Rodriguez',
-      email: 'emily.rodriguez@example.com',
-      joinDate: '2024-12-10',
-      lastActive: '2025-01-15',
-      currentPlan: 'Premium Bundle',
-      testsCompleted: 15,
-      averageScore: 82,
-      totalSpent: 99,
-      status: 'active'
+const activityFeed = [
+    { date: 'Jan 15, 2:30pm', action: 'Completed', details: 'Mock Exam #2 (Score: 88%)' },
+    { date: 'Jan 10, 4:15pm', action: 'Purchased', details: 'Full Access - Yearly' },
+    { date: 'Jan 8, 11:00am', action: 'Completed', details: 'Agile Practice Test (Score: 75%)' },
+];
+
+const plans = [
+    'Free',
+    'Full Access'
+]
+
+// --- COMPONENT ---
+export default function StudentManagementPage() {
+    const [students] = useState<Student[]>(mockStudents);
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [isCreatingNewUser, setIsCreatingNewUser] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+    const [newUser, setNewUser] = useState({ name: '', email: '', plan: 'Free' as 'Free' | 'Full Access' });
+
+    const filteredStudents = useMemo(() => {
+        if (!searchTerm) return students;
+        return students.filter(s =>
+            s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            s.email.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }, [students, searchTerm]);
+
+    const openCreateDrawer = () => {
+        setIsCreatingNewUser(true);
+        setSelectedStudent(null);
+        setNewUser({ name: '', email: '', plan: 'Free' });
+        setIsDrawerOpen(true);
+    };
+
+    const openDetailDrawer = (student: Student) => {
+        setIsCreatingNewUser(false);
+        setSelectedStudent(student);
+        setIsDrawerOpen(true);
+    };
+
+    const closeDrawer = () => {
+        setIsDrawerOpen(false);
     }
-  ];
-
-  const plans = ['Free Tier', 'Pay-per-Test', 'Premium Bundle'];
-
-  const handleViewUser = (user: StudentUser) => {
-    setSelectedUser(user);
-  };
-
-  const handleSuspendUser = (userId: string) => {
-    // TODO: Implement user suspension
-    console.log('Suspending user:', userId);
-  };
-
-  const handleActivateUser = (userId: string) => {
-    // TODO: Implement user activation
-    console.log('Activating user:', userId);
-  };
-
-  const filteredStudents = students.filter(student => {
-    const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesPlan = filterPlan === 'all' || student.currentPlan === filterPlan;
-    const matchesStatus = filterStatus === 'all' || student.status === filterStatus;
     
-    return matchesSearch && matchesPlan && matchesStatus;
-  });
+    const getInitials = (name: string) => name.match(/\b(\w)/g)?.join('').toUpperCase() || '';
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
-        return <Badge className="bg-green-100 text-green-800">Active</Badge>;
-      case 'inactive':
-        return <Badge className="bg-yellow-100 text-yellow-800">Inactive</Badge>;
-      case 'suspended':
-        return <Badge className="bg-red-100 text-red-800">Suspended</Badge>;
-      default:
-        return <Badge className="bg-gray-100 text-gray-800">{status}</Badge>;
+    const getPlanBadgeVariant = (plan: Student['plan']) => {
+        return plan === 'Free' ? 'secondary' : 'default';
     }
-  };
 
-  const getPlanBadge = (plan: string) => {
-    switch (plan) {
-      case 'Premium Bundle':
-        return <Badge className="bg-purple-100 text-purple-800">Premium</Badge>;
-      case 'Pay-per-Test':
-        return <Badge className="bg-blue-100 text-blue-800">Pay-per-Test</Badge>;
-      case 'Free Tier':
-        return <Badge className="bg-gray-100 text-gray-800">Free</Badge>;
-      default:
-        return <Badge className="bg-gray-100 text-gray-800">{plan}</Badge>;
+    const getStatusBadgeVariant = (status: Student['status']) => {
+        return status === 'Active' ? 'default' : 'destructive';
     }
-  };
 
-  return (
-    <AuthGuard allowedRoles={['admin', 'super_admin']}>
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Student Management</h1>
-            <p className="text-gray-600">View and manage all registered student users</p>
-          </div>
-
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Student Overview</CardTitle>
-              <CardDescription>Key metrics about your student base</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">{students.length}</div>
-                  <div className="text-sm text-gray-600">Total Students</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">
-                    {students.filter(s => s.status === 'active').length}
-                  </div>
-                  <div className="text-sm text-gray-600">Active Students</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-600">
-                    {students.filter(s => s.currentPlan === 'Premium Bundle').length}
-                  </div>
-                  <div className="text-sm text-gray-600">Premium Users</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-orange-600">
-                    ${students.reduce((sum, s) => sum + s.totalSpent, 0)}
-                  </div>
-                  <div className="text-sm text-gray-600">Total Revenue</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Student Directory</CardTitle>
-              <CardDescription>Search and filter student accounts</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {/* Filters */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    return (
+        <AuthGuard allowedRoles={['admin', 'super_admin']}>
+            {/* Page Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-8">
                 <div>
-                  <Label htmlFor="search">Search Students</Label>
-                  <Input
-                    id="search"
-                    placeholder="Search by name or email..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
+                    <h1 className="text-3xl font-bold text-foreground">Student Management</h1>
+                    <p className="mt-1 text-muted-foreground">View, manage, and support your students.</p>
                 </div>
-                
-                <div>
-                  <Label htmlFor="plan-filter">Plan</Label>
-                  <Select value={filterPlan} onValueChange={setFilterPlan}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All plans" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Plans</SelectItem>
-                      {plans.map(plan => (
-                        <SelectItem key={plan} value={plan}>{plan}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="status-filter">Status</Label>
-                  <Select value={filterStatus} onValueChange={setFilterStatus}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All statuses" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Statuses</SelectItem>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                      <SelectItem value="suspended">Suspended</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="flex items-end">
-                  <Button onClick={() => {
-                    setSearchTerm('');
-                    setFilterPlan('all');
-                    setFilterStatus('all');
-                  }}>
-                    Clear Filters
-                  </Button>
-                </div>
-              </div>
-
-              {/* Students Table */}
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left p-4 font-medium">Student</th>
-                      <th className="text-left p-4 font-medium">Plan</th>
-                      <th className="text-left p-4 font-medium">Status</th>
-                      <th className="text-left p-4 font-medium">Tests</th>
-                      <th className="text-left p-4 font-medium">Avg Score</th>
-                      <th className="text-left p-4 font-medium">Spent</th>
-                      <th className="text-left p-4 font-medium">Last Active</th>
-                      <th className="text-left p-4 font-medium">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredStudents.map((student) => (
-                      <tr key={student.id} className="border-b hover:bg-gray-50">
-                        <td className="p-4">
-                          <div>
-                            <div className="font-medium">{student.name}</div>
-                            <div className="text-sm text-gray-600">{student.email}</div>
-                            <div className="text-xs text-gray-500">
-                              Joined {new Date(student.joinDate).toLocaleDateString()}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="p-4">
-                          {getPlanBadge(student.currentPlan)}
-                        </td>
-                        <td className="p-4">
-                          {getStatusBadge(student.status)}
-                        </td>
-                        <td className="p-4">
-                          <div className="font-medium">{student.testsCompleted}</div>
-                          <div className="text-sm text-gray-600">completed</div>
-                        </td>
-                        <td className="p-4">
-                          <div className="font-medium">{student.averageScore}%</div>
-                        </td>
-                        <td className="p-4">
-                          <div className="font-medium">${student.totalSpent}</div>
-                        </td>
-                        <td className="p-4">
-                          <div className="text-sm">
-                            {new Date(student.lastActive).toLocaleDateString()}
-                          </div>
-                        </td>
-                        <td className="p-4">
-                          <div className="flex gap-2">
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => handleViewUser(student)}
-                            >
-                              View
-                            </Button>
-                            {student.status === 'active' ? (
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                onClick={() => handleSuspendUser(student.id)}
-                              >
-                                Suspend
-                              </Button>
-                            ) : (
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                onClick={() => handleActivateUser(student.id)}
-                              >
-                                Activate
-                              </Button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {filteredStudents.length === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  No students found matching your criteria.
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* User Detail Modal */}
-          {selectedUser && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <Card className="w-full max-w-2xl max-h-[80vh] overflow-y-auto">
-                <CardHeader>
-                  <CardTitle>Student Details</CardTitle>
-                  <CardDescription>{selectedUser.name}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div>
-                      <Label>Email</Label>
-                      <p className="font-medium">{selectedUser.email}</p>
-                    </div>
-                    <div>
-                      <Label>Current Plan</Label>
-                      <p className="font-medium">{selectedUser.currentPlan}</p>
-                    </div>
-                    <div>
-                      <Label>Join Date</Label>
-                      <p className="font-medium">{new Date(selectedUser.joinDate).toLocaleDateString()}</p>
-                    </div>
-                    <div>
-                      <Label>Last Active</Label>
-                      <p className="font-medium">{new Date(selectedUser.lastActive).toLocaleDateString()}</p>
-                    </div>
-                    <div>
-                      <Label>Tests Completed</Label>
-                      <p className="font-medium">{selectedUser.testsCompleted}</p>
-                    </div>
-                    <div>
-                      <Label>Average Score</Label>
-                      <p className="font-medium">{selectedUser.averageScore}%</p>
-                    </div>
-                    <div>
-                      <Label>Total Spent</Label>
-                      <p className="font-medium">${selectedUser.totalSpent}</p>
-                    </div>
-                    <div>
-                      <Label>Status</Label>
-                      <p className="font-medium">{getStatusBadge(selectedUser.status)}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-4">
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setSelectedUser(null)}
-                    >
-                      Close
-                    </Button>
-                    <Button 
-                      variant="outline"
-                      onClick={() => {
-                        // TODO: Navigate to user's detailed analytics
-                        console.log('View detailed analytics for:', selectedUser.id);
-                      }}
-                    >
-                      View Analytics
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+                <Button onClick={openCreateDrawer} className="w-full sm:w-auto">
+                    <Plus className="w-5 h-5 mr-2" />
+                    Add Student
+                </Button>
             </div>
-          )}
-        </div>
-      </div>
-    </AuthGuard>
-  );
+
+            {/* KPI Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+                <Card>
+                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Total Students</CardTitle></CardHeader>
+                    <CardContent><p className="text-3xl font-bold">{students.length}</p></CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Active Subscribers</CardTitle></CardHeader>
+                    <CardContent><p className="text-3xl font-bold">{students.filter(s => s.plan !== 'Free').length}</p></CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">New This Month</CardTitle></CardHeader>
+                    <CardContent><p className="text-3xl font-bold">12</p></CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Avg. Tests Taken</CardTitle></CardHeader>
+                    <CardContent><p className="text-3xl font-bold">8.4</p></CardContent>
+                </Card>
+            </div>
+
+            {/* Student Directory Table */}
+            <Card>
+                <CardHeader>
+                    <Input 
+                        type="text" 
+                        value={searchTerm} 
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder="Search by name or email..." 
+                        className="w-full max-w-sm"
+                    />
+                </CardHeader>
+                <CardContent className="p-0">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Student</TableHead>
+                                <TableHead>Plan</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead>LTV</TableHead>
+                                <TableHead>Last Active</TableHead>
+                                <TableHead className="text-right"></TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {filteredStudents.map(student => (
+                                <TableRow key={student.id}>
+                                    <TableCell className="flex items-center gap-3 py-3">
+                                        <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0">{getInitials(student.name)}</div>
+                                        <div>
+                                            <div className="font-semibold text-foreground">{student.name}</div>
+                                            <div className="text-xs text-muted-foreground">{student.email}</div>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell><Badge variant={getPlanBadgeVariant(student.plan)}>{student.plan}</Badge></TableCell>
+                                    <TableCell><Badge variant={getStatusBadgeVariant(student.status)}>{student.status}</Badge></TableCell>
+                                    <TableCell className="font-medium">${student.ltv.toFixed(2)}</TableCell>
+                                    <TableCell className="text-muted-foreground">{student.lastActive}</TableCell>
+                                    <TableCell className="text-right">
+                                        <Button variant="link" onClick={() => openDetailDrawer(student)} className="text-primary hover:underline font-semibold p-0 h-auto">View Details</Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+
+            {/* Editor/Detail Drawer */}
+            <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+                <SheetContent className="w-full max-w-xl sm:max-w-xl p-0 flex flex-col bg-muted/30">
+                    {!isCreatingNewUser && selectedStudent ? (
+                        <>
+                            {/* --- VIEW DETAILS TEMPLATE --- */}
+                            <div className="bg-white p-6 border-b border-border flex-shrink-0">
+                                <div className="flex justify-between items-start">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-lg shrink-0">
+                                            {getInitials(selectedStudent.name)}
+                                        </div>
+                                        <div>
+                                            <h2 className="text-xl font-bold">{selectedStudent.name}</h2>
+                                            <p className="text-sm text-muted-foreground">{selectedStudent.email}</p>
+                                        </div>
+                                    </div>
+                                    <Button variant="ghost" size="icon" onClick={closeDrawer}><X className="w-5 h-5" /></Button>
+                                </div>
+                                <div className="mt-4 flex flex-wrap gap-4">
+                                    <Button variant="destructive" className="bg-destructive/10 text-destructive hover:bg-destructive/20">Suspend User</Button>
+                                    <Button variant="secondary">Send Password Reset</Button>
+                                </div>
+                            </div>
+                            <div className="flex-grow p-6 space-y-6 overflow-y-auto">
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                                    <Card className="p-3"><p className="text-xs text-muted-foreground">LTV</p><p className="font-bold text-lg">${selectedStudent.ltv.toFixed(2)}</p></Card>
+                                    <Card className="p-3"><p className="text-xs text-muted-foreground">Avg. Score</p><p className="font-bold text-lg">82%</p></Card>
+                                    <Card className="p-3"><p className="text-xs text-muted-foreground">Tests Taken</p><p className="font-bold text-lg">14</p></Card>
+                                    <Card className="p-3"><p className="text-xs text-muted-foreground">Joined</p><p className="font-bold text-lg">{selectedStudent.joinDate}</p></Card>
+                                </div>
+                                <Card>
+                                    <CardHeader><CardTitle>Activity Timeline</CardTitle></CardHeader>
+                                    <CardContent className="space-y-4">
+                                        {activityFeed.map((activity, index) => (
+                                            <div key={index} className="flex gap-3 text-sm">
+                                                <div className="font-semibold text-muted-foreground w-28 shrink-0">{activity.date}</div>
+                                                <div><strong className="font-semibold">{activity.action}</strong> {activity.details}</div>
+                                            </div>
+                                        ))}
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardHeader><CardTitle>Manage Account</CardTitle></CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div>
+                                            <Label htmlFor="plan" className="font-medium text-sm">Change Plan</Label>
+                                            <Select defaultValue={selectedStudent.plan}>
+                                                <SelectTrigger id="plan" className="w-full mt-1 bg-white">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {plans.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div>
+                                            <Label className="font-medium text-sm">Admin Notes</Label>
+                                            <Textarea rows={3} className="w-full mt-1 bg-white" placeholder="Add internal notes for this user..." />
+                                        </div>
+                                        <Button className="bg-primary/10 text-primary hover:bg-primary/20">Save Changes</Button>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            {/* --- CREATE NEW USER TEMPLATE --- */}
+                            <SheetHeader className="bg-white p-6 border-b border-border flex-shrink-0 flex flex-row justify-between items-center">
+                                <SheetTitle className="text-2xl font-bold">Add New Student</SheetTitle>
+                                <Button variant="ghost" size="icon" onClick={closeDrawer}><X className="w-5 h-5" /></Button>
+                            </SheetHeader>
+                            <div className="flex-grow p-8 space-y-6 overflow-y-auto">
+                                <div><Label htmlFor="newName" className="font-medium text-sm">Full Name</Label><Input type="text" id="newName" value={newUser.name} onChange={e => setNewUser({...newUser, name: e.target.value})} className="w-full mt-1" placeholder="John Doe" /></div>
+                                <div><Label htmlFor="newEmail" className="font-medium text-sm">Email Address</Label><Input type="email" id="newEmail" value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})} className="w-full mt-1" placeholder="john.doe@example.com" /></div>
+                                <div>
+                                    <Label htmlFor="newPlan" className="font-medium text-sm">Assign Plan</Label>
+                                    <Select value={newUser.plan} onValueChange={(value: 'Free' | 'Full Access') => setNewUser({...newUser, plan: value})}>
+                                        <SelectTrigger id="newPlan" className="w-full mt-1 bg-white"><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            {plans.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="flex items-center gap-3"><Checkbox id="sendInvite" /><Label htmlFor="sendInvite" className="text-sm">Send welcome email with password setup link</Label></div>
+                            </div>
+                            <SheetFooter className="bg-white p-4 border-t border-border flex-shrink-0 flex justify-end gap-4">
+                                <Button variant="ghost" onClick={closeDrawer}>Cancel</Button>
+                                <Button>Create Student</Button>
+                            </SheetFooter>
+                        </>
+                    )}
+                </SheetContent>
+            </Sheet>
+        </AuthGuard>
+    );
 }
