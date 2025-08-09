@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -143,10 +144,10 @@ export default function TestManagement() {
         {/* Test Library Table */}
         <Card className='p-0'>
           <CardContent className="p-0">
-            <div className="overflow-x-auto rounded-t-xl">
-              <Table className='rounded-xl'>
-                <TableHeader className='bg-gray-300 rounded-t-xl'>
-                  <TableRow className='rounded-t-xl'>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-muted/50">
+                  <TableRow>
                     <TableHead>Test Name</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Questions</TableHead>
@@ -180,7 +181,7 @@ export default function TestManagement() {
 
       {/* Editor Sheet for Test Creation/Editing */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent className="w-full max-w-5xl p-0 flex flex-col">
+        <SheetContent className="w-full min-w-[960px] max-w-7xl p-0 flex flex-col">
           <SheetHeader className="p-6 border-b">
             <SheetTitle className="text-2xl">{isEditing ? 'Edit Test' : 'Create New Test'}</SheetTitle>
             <SheetDescription asChild>
@@ -334,9 +335,9 @@ export default function TestManagement() {
                                   <div key={d.name}>
                                       <div className="flex justify-between text-xs mb-1">
                                           <span className="font-medium">{d.name}</span>
-                                          <span>{`${getDomainCount(d.name as any)} questions (${((getDomainCount(d.name as any)/selectedQuestions.length)*100).toFixed(0)}%)`}</span>
+                                          <span>{`${getDomainCount(d.name as any)} questions (${selectedQuestions.length > 0 ? ((getDomainCount(d.name as any)/selectedQuestions.length)*100).toFixed(0) : 0}%)`}</span>
                                       </div>
-                                      <Progress value={(getDomainCount(d.name as any) / selectedQuestions.length) * 100} className="h-2" />
+                                      <Progress value={selectedQuestions.length > 0 ? (getDomainCount(d.name as any) / selectedQuestions.length) * 100 : 0} className="h-2" />
                                   </div>
                               ))}
                           </div>
