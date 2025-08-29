@@ -2,7 +2,6 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { toast } from 'sonner';
-import { AuthGuard } from '@/components/auth/auth-guard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -176,7 +175,7 @@ export default function QuestionBankManagement() {
   };
 
   return (
-    <AuthGuard allowedRoles={['admin']}>
+    <>
       <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Question Bank</h1>
@@ -459,6 +458,6 @@ export default function QuestionBankManagement() {
           </SheetFooter>
         </SheetContent>
       </Sheet>
-    </AuthGuard>
+    </>
   );
 }
