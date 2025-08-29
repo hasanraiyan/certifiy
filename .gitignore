@@ -40,6 +40,11 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-
+# Custom agent and ai editors configurations files
 main.py
 digest.md
+.qoder
+.kiro
+.cline 
+.cursor 
+.windsurf
