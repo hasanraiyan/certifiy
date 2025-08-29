@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { AuthGuard } from '@/components/auth/auth-guard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -68,7 +69,7 @@ export default function AdminDashboard() {
   const [dateRange, setDateRange] = useState('Last 30 Days');
 
   return (
-    <>
+    <AuthGuard allowedRoles={['admin']}>
       {/* Dashboard Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-8">
         <div>
@@ -199,9 +200,9 @@ export default function AdminDashboard() {
                   <svg viewBox="0 0 100 25" className="w-full h-full">
                     <polyline 
                       fill="none" 
-                      stroke="#EF4444" 
+                      stroke="#10B981" 
                       strokeWidth="2" 
-                      points="0,5 10,8 20,6 30,10 40,12 50,10 60,13 70,15 80,12 90,14 100,16"
+                      points="0,20 10,18 20,15 30,16 40,12 50,10 60,11 70,9 80,6 90,8 100,5"
                     />
                   </svg>
                 </div>
@@ -212,18 +213,19 @@ export default function AdminDashboard() {
               <CardContent className="p-6">
                 <div className="flex justify-between items-start">
                   <h3 className="text-sm font-medium text-muted-foreground">Avg. Test Score</h3>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground font-semibold">
-                    +1.2%
+                  <div className="flex items-center gap-1 text-xs text-green-500 font-semibold">
+                    <TrendingUp className="w-3 h-3" />
+                    +4.2%
                   </div>
                 </div>
-                <p className="mt-2 text-3xl font-bold text-foreground">78.2%</p>
+                <p className="mt-2 text-3xl font-bold text-foreground">78.4%</p>
                 <div className="h-8 mt-2 opacity-50">
                   <svg viewBox="0 0 100 25" className="w-full h-full">
                     <polyline 
                       fill="none" 
-                      stroke="#4A5568" 
+                      stroke="#10B981" 
                       strokeWidth="2" 
-                      points="0,15 10,12 20,14 30,10 40,12 50,10 60,8 70,10 80,6 90,8 100,5"
+                      points="0,15 10,14 20,16 30,13 40,12 50,11 60,13 70,10 80,12 90,8 100,9"
                     />
                   </svg>
                 </div>
@@ -231,19 +233,19 @@ export default function AdminDashboard() {
             </Card>
           </div>
 
-          {/* Revenue Performance Chart */}
+          {/* Quick Actions */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg font-bold text-foreground">Revenue Performance</CardTitle>
-              <CardDescription>
-                Showing performance for the {dateRange}
-              </CardDescription>
+              <CardTitle className="font-bold text-foreground">Quick Actions</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="mt-4 h-80 flex items-center justify-center bg-muted rounded-lg">
-                <p className="text-muted-foreground">
-                  [Dual Line Chart Placeholder: Revenue vs. Previous Period]
-                </p>
+              <div className="grid grid-cols-2 gap-4">
+                {quickActions.map((action, index) => (
+                  <Button key={index} variant="outline" className="h-auto py-4 flex flex-col items-center justify-center gap-2">
+                    {action.icon}
+                    <span className="text-sm">{action.name}</span>
+                  </Button>
+                ))}
               </div>
             </CardContent>
           </Card>
@@ -251,30 +253,6 @@ export default function AdminDashboard() {
 
         {/* Right Column */}
         <div className="xl:col-span-1 space-y-8">
-          {/* Quick Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-bold text-foreground">Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <nav className="flex flex-col space-y-2 text-sm font-semibold">
-                {quickActions.map((action) => (
-                  <Button
-                    key={action.name}
-                    variant="ghost"
-                    className="justify-start text-muted-foreground hover:text-primary hover:bg-muted"
-                    asChild
-                  >
-                    <a href={action.href}>
-                      {action.icon}
-                      <span className="ml-3">{action.name}</span>
-                    </a>
-                  </Button>
-                ))}
-              </nav>
-            </CardContent>
-          </Card>
-
           {/* Newest Students */}
           <Card>
             <CardHeader>
@@ -284,14 +262,12 @@ export default function AdminDashboard() {
               <div className="space-y-4">
                 {newestStudents.map((student, index) => (
                   <div key={index} className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
                       {student.initials}
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold">{student.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {student.time}
-                      </p>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{student.name}</p>
+                      <p className="text-xs text-muted-foreground">{student.time}</p>
                     </div>
                   </div>
                 ))}
@@ -305,14 +281,11 @@ export default function AdminDashboard() {
               <CardTitle className="font-bold text-foreground">Platform Status</CardTitle>
             </CardHeader>
             <CardContent>
-              <ul className="space-y-2 text-sm">
+              <ul className="space-y-3">
                 {platformStatus.map((service, index) => (
-                  <li key={index} className="flex justify-between items-center">
-                    <span>{service.service}</span>
-                    <span className={`flex items-center gap-2 font-semibold ${service.color}`}>
-                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                      {service.status}
-                    </span>
+                  <li key={index} className="flex justify-between">
+                    <span className="text-sm">{service.service}</span>
+                    <span className={`text-sm font-medium ${service.color}`}>{service.status}</span>
                   </li>
                 ))}
               </ul>
@@ -320,6 +293,6 @@ export default function AdminDashboard() {
           </Card>
         </div>
       </div>
-    </>
+    </AuthGuard>
   );
 }

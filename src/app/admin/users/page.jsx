@@ -2,7 +2,6 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { AuthGuard } from '@/components/auth/auth-guard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -70,7 +69,7 @@ export default function StudentManagementPage() {
     };
 
     return (
-        <AuthGuard allowedRoles={['admin', 'super_admin']}>
+        <>
             {/* Page Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-8">
                 <div>
@@ -198,63 +197,44 @@ export default function StudentManagementPage() {
                                         </div>
                                     </CardContent>
                                 </Card>
-                                <Card>
-                                    <CardHeader><CardTitle>Manage Account</CardTitle></CardHeader>
-                                    <CardContent className="space-y-4">
-                                        <div>
-                                            <Label className="font-medium text-sm">Purchases</Label>
-                                            <div className="mt-2 text-sm">
-                                                {selectedStudent.purchases > 0 ? (
-                                                    <div className="space-y-2">
-                                                        <div className="flex justify-between">
-                                                            <span>PMP Mock Exam #1</span>
-                                                            <span className="text-muted-foreground">Jan 10, 2025</span>
-                                                        </div>
-                                                        <div className="flex justify-between">
-                                                            <span>Agile Practice Quiz</span>
-                                                            <span className="text-muted-foreground">Dec 15, 2024</span>
-                                                        </div>
-                                                    </div>
-                                                ) : (
-                                                    <p className="text-muted-foreground">No purchases yet</p>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
                             </div>
                         </>
                     ) : (
                         <>
                             {/* --- CREATE NEW USER TEMPLATE --- */}
-                            <SheetHeader className="p-6 border-b bg-white">
-                                <SheetTitle>Create New Student</SheetTitle>
-                                <SheetDescription>Enter the details for the new student account.</SheetDescription>
-                            </SheetHeader>
-                            <div className="flex-grow p-6 space-y-6 overflow-y-auto">
-                                <div>
-                                    <Label htmlFor="student-name" className="font-medium">Full Name</Label>
-                                    <Input 
-                                        id="student-name" 
-                                        value={newUser.name} 
-                                        onChange={(e) => setNewUser(prev => ({ ...prev, name: e.target.value }))}
-                                        className="mt-1" 
-                                        placeholder="Enter student's full name"
-                                    />
-                                </div>
-                                <div>
-                                    <Label htmlFor="student-email" className="font-medium">Email Address</Label>
-                                    <Input 
-                                        id="student-email" 
-                                        type="email" 
-                                        value={newUser.email} 
-                                        onChange={(e) => setNewUser(prev => ({ ...prev, email: e.target.value }))}
-                                        className="mt-1" 
-                                        placeholder="Enter student's email"
-                                    />
+                            <div className="bg-white p-6 border-b border-border flex-shrink-0">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <h2 className="text-xl font-bold">Create New Student</h2>
+                                        <p className="text-sm text-muted-foreground">Add a new student to the platform</p>
+                                    </div>
+                                    <Button variant="ghost" size="icon" onClick={closeDrawer}><X className="w-5 h-5" /></Button>
                                 </div>
                             </div>
-                            <SheetFooter className="p-6 border-t bg-white">
+                            <div className="flex-grow p-6 space-y-6 overflow-y-auto">
+                                <div className="space-y-4">
+                                    <div>
+                                        <Label htmlFor="new-user-name">Full Name</Label>
+                                        <Input 
+                                            id="new-user-name"
+                                            value={newUser.name}
+                                            onChange={(e) => setNewUser(prev => ({...prev, name: e.target.value}))}
+                                            placeholder="Enter full name"
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="new-user-email">Email Address</Label>
+                                        <Input 
+                                            id="new-user-email"
+                                            type="email"
+                                            value={newUser.email}
+                                            onChange={(e) => setNewUser(prev => ({...prev, email: e.target.value}))}
+                                            placeholder="Enter email address"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            <SheetFooter className="p-6 border-t border-border flex-shrink-0">
                                 <Button variant="outline" onClick={closeDrawer}>Cancel</Button>
                                 <Button onClick={handleCreateUser}>Create Student</Button>
                             </SheetFooter>
@@ -262,6 +242,6 @@ export default function StudentManagementPage() {
                     )}
                 </SheetContent>
             </Sheet>
-        </AuthGuard>
+        </>
     );
 }

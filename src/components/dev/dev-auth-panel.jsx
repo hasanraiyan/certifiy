@@ -18,28 +18,12 @@ const mockUsers = {
     createdAt: new Date('2024-01-15'),
     updatedAt: new Date('2025-01-15')
   },
-  content_manager: {
-    id: '2',
-    email: 'content@example.com',
-    name: 'Sarah Content Manager',
-    role: 'content_manager',
-    createdAt: new Date('2024-02-01'),
-    updatedAt: new Date('2025-01-15')
-  },
   admin: {
     id: '3',
     email: 'admin@example.com',
     name: 'Mike Admin',
     role: 'admin',
     createdAt: new Date('2024-01-01'),
-    updatedAt: new Date('2025-01-15')
-  },
-  super_admin: {
-    id: '4',
-    email: 'superadmin@example.com',
-    name: 'Alice Super Admin',
-    role: 'super_admin',
-    createdAt: new Date('2023-12-01'),
     updatedAt: new Date('2025-01-15')
   }
 };
@@ -82,9 +66,7 @@ export function DevAuthPanel() {
   const getRoleBadge = (role) => {
     const colors = {
       student: 'bg-blue-100 text-blue-800',
-      content_manager: 'bg-green-100 text-green-800',
-      admin: 'bg-purple-100 text-purple-800',
-      super_admin: 'bg-red-100 text-red-800'
+      admin: 'bg-purple-100 text-purple-800'
     };
     
     return (
@@ -195,9 +177,7 @@ export function DevAuthPanel() {
                 <strong>Role Access:</strong>
                 <ul className="mt-1 space-y-1">
                   <li>• <strong>Student:</strong> Dashboard, Tests, Profile</li>
-                  <li>• <strong>Content Manager:</strong> + Questions, Tests</li>
-                  <li>• <strong>Admin:</strong> + Users, Plans, Reports</li>
-                  <li>• <strong>Super Admin:</strong> + Team Management</li>
+                  <li>• <strong>Admin:</strong> All administrative functions</li>
                 </ul>
               </div>
             </CardContent>

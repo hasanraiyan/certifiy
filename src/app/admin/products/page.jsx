@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { AuthGuard } from '@/components/auth/auth-guard';
+import { useState, useEffect } from 'react'; // FIX: Imported useEffect for slug generation.
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,17 +10,28 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Tag, Package, Calendar, Star } from 'lucide-react';
-import { useAdmin } from '@/context/admin-context'; // Import the useAdmin hook
+import { Tag, Package, Star } from 'lucide-react';
+import { useAdmin } from '@/context/admin-context';
+
+// FIX: Helper function to generate a URL-friendly slug from a string.
+const generateSlug = (name) => {
+  if (!name) return '';
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '') // Remove non-word chars
+    .replace(/[\s_-]+/g, '-') // Replace spaces and hyphens with a single hyphen
+    .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+};
+
 
 // --- COMPONENT ---
 export default function ProductManagement() {
-  // Get state and functions from the context
-  const { products, bundles, createProduct, updateProduct } = useAdmin();
+  const { products, bundles, createProduct, updateProduct, createBundle, updateBundle } = useAdmin();
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
-  const [isEditingProduct, setIsEditingProduct] = useState(true); // true for product, false for bundle
+  const [isEditingProduct, setIsEditingProduct] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedBundle, setSelectedBundle] = useState(null);
   const [formData, setFormData] = useState({
@@ -31,9 +41,23 @@ export default function ProductManagement() {
     description: '',
     type: 'Exam',
     questionIds: [],
+    productIds: [],
+    discountPercentage: 0,
     status: 'Draft',
+    isFeatured: false,
     publishedAt: null
   });
+
+  // FIX: Added a useEffect hook to automatically generate the slug from the name when creating a new item.
+  useEffect(() => {
+    if (isCreating) {
+      setFormData(prev => ({
+        ...prev,
+        slug: generateSlug(prev.name)
+      }));
+    }
+  }, [formData.name, isCreating]);
+
 
   const openCreateProductDrawer = () => {
     setIsCreating(true);
@@ -41,7 +65,7 @@ export default function ProductManagement() {
     setSelectedProduct(null);
     setFormData({
       name: '', slug: '', price: { amount: 0, currency: 'USD' }, description: '',
-      type: 'Exam', questionIds: [], status: 'Draft', publishedAt: null
+      type: 'Exam', questionIds: [], status: 'Draft', isFeatured: false, publishedAt: null
     });
     setIsDrawerOpen(true);
   };
@@ -52,7 +76,7 @@ export default function ProductManagement() {
     setSelectedBundle(null);
     setFormData({
       name: '', slug: '', price: { amount: 0, currency: 'USD' }, description: '',
-      productIds: [], status: 'Draft', discountPercentage: 0, publishedAt: null
+      productIds: [], status: 'Draft', isFeatured: false, discountPercentage: 0, publishedAt: null
     });
     setIsDrawerOpen(true);
   };
@@ -74,17 +98,18 @@ export default function ProductManagement() {
   };
 
   const handleSave = async () => {
-    // Call the functions from the context instead of the mockApi
     if (isEditingProduct) {
       if (isCreating) {
-        createProduct(formData); // Use context function
+        await createProduct(formData);
       } else if (selectedProduct) {
-        updateProduct(selectedProduct.id, formData); // Use context function
+        await updateProduct(selectedProduct.id, formData);
       }
     } else {
-      // Implement bundle functions in context and call them here
-      // if (isCreating) createBundle(formData);
-      // else updateBundle(selectedBundle.id, formData);
+      if (isCreating) {
+        await createBundle(formData);
+      } else if (selectedBundle) {
+        await updateBundle(selectedBundle.id, formData);
+      }
     }
     setIsDrawerOpen(false);
   };
@@ -108,7 +133,7 @@ export default function ProductManagement() {
   };
 
   return (
-    <AuthGuard allowedRoles={['admin', 'super_admin']}>
+    <>
       <div className="space-y-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
@@ -189,35 +214,49 @@ export default function ProductManagement() {
                   </tr>
                 </thead>
                 <tbody>
-                  {products.map((product) => (
-                    <tr key={product.id} className="border-b border-border hover:bg-muted/30">
-                      <td className="p-4">
-                        <div>
-                          <div className="font-semibold">{product.name}</div>
-                          <div className="text-sm text-muted-foreground">{product.slug}</div>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <Badge variant="outline" className={getTypeBadge(product.type)}>
-                          {product.type}
-                        </Badge>
-                      </td>
-                      <td className="p-4 font-medium">${product.price.amount.toFixed(2)} {product.price.currency}</td>
-                      <td className="p-4">
-                        <Badge variant="outline" className={getStatusBadge(product.status)}>
-                          {product.status}
-                        </Badge>
-                      </td>
-                      <td className="p-4">
-                        <Switch checked={product.isFeatured} />
-                      </td>
-                      <td className="p-4 text-right">
-                        <Button variant="ghost" size="sm" onClick={() => openEditProductDrawer(product)}>
-                          Edit
-                        </Button>
+                  {/* FIX: Implemented an empty state message when no products are available. */}
+                  {products.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="text-center p-8 text-muted-foreground">
+                        No products found. Click 'New Product' to create one.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    products.map((product) => (
+                      <tr key={product.id} className="border-b border-border hover:bg-muted/30">
+                        <td className="p-4">
+                          <div>
+                            <div className="font-semibold">{product.name}</div>
+                            <div className="text-sm text-muted-foreground">{product.slug}</div>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <Badge variant="outline" className={getTypeBadge(product.type)}>
+                            {product.type}
+                          </Badge>
+                        </td>
+                        <td className="p-4 font-medium">${product.price.amount.toFixed(2)} {product.price.currency}</td>
+                        <td className="p-4">
+                          <Badge variant="outline" className={getStatusBadge(product.status)}>
+                            {product.status}
+                          </Badge>
+                        </td>
+                        <td className="p-4">
+                          <Switch
+                            checked={product.isFeatured}
+                            onCheckedChange={(checked) =>
+                              updateProduct(product.id, { ...product, isFeatured: checked })
+                            }
+                          />
+                        </td>
+                        <td className="p-4 text-right">
+                          <Button variant="ghost" size="sm" onClick={() => openEditProductDrawer(product)}>
+                            Edit
+                          </Button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -240,49 +279,65 @@ export default function ProductManagement() {
                   </tr>
                 </thead>
                 <tbody>
-                  {bundles.map((bundle) => (
-                    <tr key={bundle.id} className="border-b border-border hover:bg-muted/30">
-                      <td className="p-4">
-                        <div>
-                          <div className="font-semibold">{bundle.name}</div>
-                          <div className="text-sm text-muted-foreground">{bundle.slug}</div>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <div className="flex -space-x-2">
-                          {bundle.productIds.slice(0, 3).map((id, index) => (
-                            <div key={index} className="w-8 h-8 rounded-full bg-primary/10 border-2 border-background flex items-center justify-center text-xs font-bold text-primary">
-                              {products.find(p => p.id === id)?.name.charAt(0) || '?'}
-                            </div>
-                          ))}
-                          {bundle.productIds.length > 3 && (
-                            <div className="w-8 h-8 rounded-full bg-muted border-2 border-background flex items-center justify-center text-xs font-bold text-muted-foreground">
-                              +{bundle.productIds.length - 3}
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <div className="font-medium">${bundle.price.amount.toFixed(2)} {bundle.price.currency}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {bundle.discountPercentage}% off
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <Badge variant="outline" className={getStatusBadge(bundle.status)}>
-                          {bundle.status}
-                        </Badge>
-                      </td>
-                      <td className="p-4">
-                        <Switch checked={bundle.isFeatured} />
-                      </td>
-                      <td className="p-4 text-right">
-                        <Button variant="ghost" size="sm" onClick={() => openEditBundleDrawer(bundle)}>
-                          Edit
-                        </Button>
+                  {/* FIX: Implemented an empty state message when no bundles are available. */}
+                  {bundles.length === 0 ? (
+                     <tr>
+                      <td colSpan={6} className="text-center p-8 text-muted-foreground">
+                        No bundles found. Click 'New Bundle' to create one.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    bundles.map((bundle) => (
+                      <tr key={bundle.id} className="border-b border-border hover:bg-muted/30">
+                        <td className="p-4">
+                          <div>
+                            <div className="font-semibold">{bundle.name}</div>
+                            <div className="text-sm text-muted-foreground">{bundle.slug}</div>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex -space-x-2">
+                            {bundle.productIds.slice(0, 3).map((id, index) => (
+                              <div key={index} className="w-8 h-8 rounded-full bg-primary/10 border-2 border-background flex items-center justify-center text-xs font-bold text-primary">
+                                {products.find(p => p.id === id)?.name.charAt(0) || '?'}
+                              </div>
+                            ))}
+                            {bundle.productIds.length > 3 && (
+                              <div className="w-8 h-8 rounded-full bg-muted border-2 border-background flex items-center justify-center text-xs font-bold text-muted-foreground">
+                                +{bundle.productIds.length - 3}
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <div className="font-medium">${bundle.price.amount.toFixed(2)} {bundle.price.currency}</div>
+                          {bundle.discountPercentage > 0 && (
+                            <div className="text-sm text-green-600">
+                                {bundle.discountPercentage}% off
+                            </div>
+                          )}
+                        </td>
+                        <td className="p-4">
+                          <Badge variant="outline" className={getStatusBadge(bundle.status)}>
+                            {bundle.status}
+                          </Badge>
+                        </td>
+                        <td className="p-4">
+                          <Switch
+                            checked={bundle.isFeatured}
+                            onCheckedChange={(checked) =>
+                              updateBundle(bundle.id, { ...bundle, isFeatured: checked })
+                            }
+                          />
+                        </td>
+                        <td className="p-4 text-right">
+                          <Button variant="ghost" size="sm" onClick={() => openEditBundleDrawer(bundle)}>
+                            Edit
+                          </Button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -290,12 +345,11 @@ export default function ProductManagement() {
         </Card>
       </div>
 
-      {/* Editor Drawer */}
       <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
         <SheetContent className="w-full max-w-2xl sm:max-w-2xl p-0 flex flex-col">
           <SheetHeader className="p-6 border-b">
             <SheetTitle>
-              {isCreating 
+              {isCreating
                 ? (isEditingProduct ? 'Create New Product' : 'Create New Bundle')
                 : (isEditingProduct ? 'Edit Product' : 'Edit Bundle')
               }
@@ -305,46 +359,51 @@ export default function ProductManagement() {
           <div className="flex-grow p-6 space-y-6 overflow-y-auto">
             <div>
               <Label htmlFor="name" className="font-semibold">Name</Label>
-              <Input 
-                id="name" 
-                value={formData.name || ''} 
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))} 
-                className="mt-2" 
+              <Input
+                id="name"
+                value={formData.name || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                className="mt-2"
+                placeholder="e.g., Ultimate Practice Exam"
               />
             </div>
-            
+
             <div>
               <Label htmlFor="slug" className="font-semibold">Slug</Label>
-              <Input 
-                id="slug" 
-                value={formData.slug || ''} 
-                onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))} 
-                className="mt-2" 
+              <Input
+                id="slug"
+                value={formData.slug || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
+                className="mt-2"
+                placeholder="e.g., ultimate-practice-exam"
+                readOnly={isCreating} // Make it read-only when auto-generating
               />
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <Label htmlFor="price" className="font-semibold">Price ($)</Label>
-                <Input 
-                  id="price" 
-                  type="number" 
-                  value={formData.price?.amount || 0} 
-                  onChange={(e) => setFormData(prev => ({ 
-                    ...prev, 
-                    price: { ...prev.price, amount: parseFloat(e.target.value) || 0 } 
-                  }))} 
-                  className="mt-2" 
+                <Input
+                  id="price"
+                  type="number"
+                  // FIX: Added step="0.01" for better UX with decimals.
+                  step="0.01"
+                  value={formData.price?.amount || 0}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    price: { ...prev.price, amount: parseFloat(e.target.value) || 0 }
+                  }))}
+                  className="mt-2"
                 />
               </div>
-              
+
               <div>
                 <Label htmlFor="currency" className="font-semibold">Currency</Label>
-                <Select 
-                  value={formData.price?.currency || 'USD'} 
-                  onValueChange={(value) => setFormData(prev => ({ 
-                    ...prev, 
-                    price: { ...prev.price, currency: value } 
+                <Select
+                  value={formData.price?.currency || 'USD'}
+                  onValueChange={(value) => setFormData(prev => ({
+                    ...prev,
+                    price: { ...prev.price, currency: value }
                   }))}
                 >
                   <SelectTrigger className="mt-2">
@@ -358,24 +417,25 @@ export default function ProductManagement() {
                 </Select>
               </div>
             </div>
-            
+
             <div>
               <Label htmlFor="description" className="font-semibold">Description</Label>
-              <Textarea 
-                id="description" 
-                value={formData.description || ''} 
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))} 
-                rows={4} 
-                className="mt-2" 
+              <Textarea
+                id="description"
+                value={formData.description || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                rows={4}
+                className="mt-2"
+                placeholder="A brief description of the product or bundle..."
               />
             </div>
-            
+
             {isEditingProduct ? (
               <>
                 <div>
                   <Label htmlFor="type" className="font-semibold">Type</Label>
-                  <Select 
-                    value={formData.type || 'Exam'} 
+                  <Select
+                    value={formData.type || 'Exam'}
                     onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}
                   >
                     <SelectTrigger className="mt-2">
@@ -388,17 +448,18 @@ export default function ProductManagement() {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="questionIds" className="font-semibold">Question IDs (comma separated)</Label>
-                  <Input 
-                    id="questionIds" 
-                    value={formData.questionIds?.join(', ') || ''} 
-                    onChange={(e) => setFormData(prev => ({ 
-                      ...prev, 
-                      questionIds: e.target.value.split(',').map(id => id.trim()).filter(id => id) 
-                    }))} 
-                    className="mt-2" 
+                  <Input
+                    id="questionIds"
+                    value={formData.questionIds?.join(', ') || ''}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      questionIds: e.target.value.split(',').map(id => id.trim()).filter(id => id)
+                    }))}
+                    className="mt-2"
+                    placeholder="q1, q2, q3"
                   />
                 </div>
               </>
@@ -406,37 +467,39 @@ export default function ProductManagement() {
               <>
                 <div>
                   <Label htmlFor="productIds" className="font-semibold">Product IDs (comma separated)</Label>
-                  <Input 
-                    id="productIds" 
-                    value={formData.productIds?.join(', ') || ''} 
-                    onChange={(e) => setFormData(prev => ({ 
-                      ...prev, 
-                      productIds: e.target.value.split(',').map(id => id.trim()).filter(id => id) 
-                    }))} 
-                    className="mt-2" 
+                  <Input
+                    id="productIds"
+                    value={formData.productIds?.join(', ') || ''}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      productIds: e.target.value.split(',').map(id => id.trim()).filter(id => id)
+                    }))}
+                    className="mt-2"
+                    placeholder="prod1, prod2, prod3"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="discountPercentage" className="font-semibold">Discount Percentage</Label>
-                  <Input 
-                    id="discountPercentage" 
-                    type="number" 
-                    value={formData.discountPercentage || 0} 
-                    onChange={(e) => setFormData(prev => ({ 
-                      ...prev, 
-                      discountPercentage: parseInt(e.target.value) || 0 
-                    }))} 
-                    className="mt-2" 
+                  <Input
+                    id="discountPercentage"
+                    type="number"
+                    value={formData.discountPercentage || 0}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      discountPercentage: parseInt(e.target.value) || 0
+                    }))}
+                    className="mt-2"
+                    placeholder="e.g., 15"
                   />
                 </div>
               </>
             )}
-            
+
             <div>
               <Label htmlFor="status" className="font-semibold">Status</Label>
-              <Select 
-                value={formData.status || 'Draft'} 
+              <Select
+                value={formData.status || 'Draft'}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
               >
                 <SelectTrigger className="mt-2">
@@ -449,29 +512,31 @@ export default function ProductManagement() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="flex items-center justify-between pt-4">
               <div className="flex items-center space-x-2">
-                <Switch 
-                  id="featured" 
-                  checked={formData.isFeatured || false} 
+                <Switch
+                  id="featured"
+                  checked={formData.isFeatured || false}
                   onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isFeatured: checked }))}
                 />
-                <Label htmlFor="featured">Featured Product</Label>
+                <Label htmlFor="featured">Featured Product/Bundle</Label>
               </div>
-              
-              <div className="flex items-center gap-2">
-                <Button variant="outline" onClick={() => setIsDrawerOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleSave}>
-                  Save Changes
-                </Button>
-              </div>
+            </div>
+          </div>
+
+          <div className="p-6 border-t bg-muted/50">
+            <div className="flex items-center justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsDrawerOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSave}>
+                Save Changes
+              </Button>
             </div>
           </div>
         </SheetContent>
       </Sheet>
-    </AuthGuard>
+    </>
   );
 }

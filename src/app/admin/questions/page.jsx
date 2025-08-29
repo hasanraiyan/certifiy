@@ -99,6 +99,7 @@ export default function QuestionBankManagement() {
 
   return (
     <AuthGuard allowedRoles={['content_manager', 'admin', 'super_admin']}>
+
       <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Question Bank</h1>
@@ -141,7 +142,7 @@ export default function QuestionBankManagement() {
           </div>
         </CardContent>
       </Card>
-      
+        
       <Card className='p-0'>
         <div className="overflow-x-auto rounded-xl">
           <Table>
@@ -195,6 +196,7 @@ export default function QuestionBankManagement() {
           </SheetHeader>
 
           <div className="flex-grow p-6 space-y-6 overflow-y-auto">
+            <div>
               <div>
                 <Label htmlFor="q-text" className="font-semibold">Question Text</Label>
                 <Textarea 
@@ -311,40 +313,17 @@ export default function QuestionBankManagement() {
                   className="mt-2" 
                 />
               </div>
+            </div>
           </div>
-
-          <SheetFooter className="p-6 border-t flex justify-between">
-            {isEditing && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" className="mr-auto">
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Delete
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. This will permanently delete the question.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => handleDelete(currentQuestion.id)}>Delete</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
-            <div className="flex gap-2">
+          
+          <SheetFooter className="p-6 border-t flex-shrink-0">
               <SheetClose asChild>
                 <Button variant="outline">Cancel</Button>
               </SheetClose>
               <Button onClick={handleSave}>Save Question</Button>
-            </div>
-          </SheetFooter>
-        </SheetContent>
-      </Sheet>
-    </AuthGuard>
-  );
-}
+            </SheetFooter>
+          </SheetContent>
+        </Sheet>
+      </AuthGuard>
+    );
+  }

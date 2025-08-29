@@ -3,13 +3,11 @@
     "id": "1",
     "name": "Alice Johnson",
     "email": "alice.johnson@company.com",
-    "role": "super_admin",
+    "role": "admin",
     "joinDate": "2024-01-15",
     "lastActive": "2025-01-15",
     "status": "active",
-    "permissions": [
-      "all"
-    ]
+    "permissions": ["all"]
   },
   {
     "id": "2",
@@ -19,25 +17,17 @@
     "joinDate": "2024-03-20",
     "lastActive": "2025-01-14",
     "status": "active",
-    "permissions": [
-      "manage_users",
-      "manage_products",
-      "view_reports",
-      "manage_tests"
-    ]
+    "permissions": ["all"]
   },
   {
     "id": "3",
     "name": "Carol Davis",
     "email": "carol.davis@company.com",
-    "role": "content_manager",
+    "role": "admin",
     "joinDate": "2024-06-10",
     "lastActive": "2025-01-15",
     "status": "active",
-    "permissions": [
-      "manage_questions",
-      "manage_tests"
-    ]
+    "permissions": ["all"]
   },
   {
     "id": "4",
@@ -47,9 +37,6 @@
     "joinDate": "2024-08-05",
     "lastActive": "2024-12-20",
     "status": "inactive",
-    "permissions": [
-      "manage_users",
-      "view_reports"
-    ]
+    "permissions": ["all"]
   }
 ]

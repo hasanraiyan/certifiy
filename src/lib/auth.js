@@ -40,15 +40,7 @@ export const hasRole = (user, allowedRoles) => {
 };
 
 export const isAdmin = (user) => {
-  return hasRole(user, ['admin', 'super_admin']);
-};
-
-export const isSuperAdmin = (user) => {
-  return hasRole(user, ['super_admin']);
-};
-
-export const canManageContent = (user) => {
-  return hasRole(user, ['content_manager', 'admin', 'super_admin']);
+  return hasRole(user, ['admin']);
 };
 
 // Ownership-based access control helpers for e-commerce model

@@ -112,7 +112,7 @@ export default function TestManagement() {
   };
 
   return (
-    <AuthGuard allowedRoles={['admin', 'super_admin']}>
+    <>
       <div className="space-y-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
@@ -164,7 +164,6 @@ export default function TestManagement() {
         </Card>
       </div>
 
-      {/* Editor Sheet for Test Creation/Editing */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent className="w-full min-w-[960px] max-w-7xl p-0 flex flex-col">
           <SheetHeader className="p-6 border-b">
@@ -411,6 +410,6 @@ export default function TestManagement() {
           </div>
         </SheetContent>
       </Sheet>
-    </AuthGuard>
+    </>
   );
 }
