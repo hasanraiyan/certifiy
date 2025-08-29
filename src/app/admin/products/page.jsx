@@ -10,8 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Tag, Package, Star } from 'lucide-react';
+import { Tag, Package, Star, Settings } from 'lucide-react';
 import { useAdmin } from '@/context/admin-context';
+import MultiSelectSheet from '@/components/admin/multi-select-sheet';
 
 // FIX: Helper function to generate a URL-friendly slug from a string.
 const generateSlug = (name) => {
@@ -27,7 +28,7 @@ const generateSlug = (name) => {
 
 // --- COMPONENT ---
 export default function ProductManagement() {
-  const { products, bundles, createProduct, updateProduct, createBundle, updateBundle } = useAdmin();
+  const { products, bundles, questions, createProduct, updateProduct, createBundle, updateBundle } = useAdmin();
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -47,6 +48,10 @@ export default function ProductManagement() {
     isFeatured: false,
     publishedAt: null
   });
+
+  // Multi-select sheet states
+  const [isQuestionSelectOpen, setIsQuestionSelectOpen] = useState(false);
+  const [isProductSelectOpen, setIsProductSelectOpen] = useState(false);
 
   // FIX: Added a useEffect hook to automatically generate the slug from the name when creating a new item.
   useEffect(() => {
@@ -450,33 +455,45 @@ export default function ProductManagement() {
                 </div>
 
                 <div>
-                  <Label htmlFor="questionIds" className="font-semibold">Question IDs (comma separated)</Label>
-                  <Input
-                    id="questionIds"
-                    value={formData.questionIds?.join(', ') || ''}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      questionIds: e.target.value.split(',').map(id => id.trim()).filter(id => id)
-                    }))}
-                    className="mt-2"
-                    placeholder="q1, q2, q3"
-                  />
+                  <Label className="font-semibold">Questions</Label>
+                  <div className="mt-2 space-y-2">
+                    <Button 
+                      type="button"
+                      variant="outline" 
+                      onClick={() => setIsQuestionSelectOpen(true)}
+                      className="w-full justify-start"
+                    >
+                      <Settings className="w-4 h-4 mr-2" />
+                      Select Questions ({formData.questionIds?.length || 0} selected)
+                    </Button>
+                    {formData.questionIds?.length > 0 && (
+                      <div className="text-sm text-muted-foreground">
+                        {formData.questionIds.length} question{formData.questionIds.length !== 1 ? 's' : ''} selected
+                      </div>
+                    )}
+                  </div>
                 </div>
               </>
             ) : (
               <>
                 <div>
-                  <Label htmlFor="productIds" className="font-semibold">Product IDs (comma separated)</Label>
-                  <Input
-                    id="productIds"
-                    value={formData.productIds?.join(', ') || ''}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      productIds: e.target.value.split(',').map(id => id.trim()).filter(id => id)
-                    }))}
-                    className="mt-2"
-                    placeholder="prod1, prod2, prod3"
-                  />
+                  <Label className="font-semibold">Products</Label>
+                  <div className="mt-2 space-y-2">
+                    <Button 
+                      type="button"
+                      variant="outline" 
+                      onClick={() => setIsProductSelectOpen(true)}
+                      className="w-full justify-start"
+                    >
+                      <Settings className="w-4 h-4 mr-2" />
+                      Select Products ({formData.productIds?.length || 0} selected)
+                    </Button>
+                    {formData.productIds?.length > 0 && (
+                      <div className="text-sm text-muted-foreground">
+                        {formData.productIds.length} product{formData.productIds.length !== 1 ? 's' : ''} selected
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div>
@@ -537,6 +554,68 @@ export default function ProductManagement() {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Question Selection Sheet */}
+      <MultiSelectSheet
+        isOpen={isQuestionSelectOpen}
+        onOpenChange={setIsQuestionSelectOpen}
+        title="Select Questions"
+        items={questions || []}
+        selectedIds={formData.questionIds || []}
+        onSave={(selectedIds) => setFormData(prev => ({ ...prev, questionIds: selectedIds }))}
+        itemDisplayField="text"
+        itemSearchFields={['text', 'domain']}
+        itemFilterField="domain"
+        itemFilterOptions={['People', 'Process', 'Business Environment']}
+        renderItem={(question) => (
+          <div className="flex-1">
+            <div className="font-medium">{question?.text || 'Untitled Question'}</div>
+            <div className="flex gap-2 mt-2">
+              <Badge variant="secondary">{question?.domain || 'Unknown'}</Badge>
+              <Badge variant="outline">{question?.difficulty || 'Unknown'}</Badge>
+            </div>
+          </div>
+        )}
+        renderSelectedItem={(question) => (
+          <div className="flex-1">
+            <div className="font-medium truncate">{question?.text || 'Untitled Question'}</div>
+            <div className="flex gap-2 mt-1">
+              <Badge variant="secondary" className="text-xs">{question?.domain || 'Unknown'}</Badge>
+            </div>
+          </div>
+        )}
+      />
+
+      {/* Product Selection Sheet */}
+      <MultiSelectSheet
+        isOpen={isProductSelectOpen}
+        onOpenChange={setIsProductSelectOpen}
+        title="Select Products for Bundle"
+        items={products || []}
+        selectedIds={formData.productIds || []}
+        onSave={(selectedIds) => setFormData(prev => ({ ...prev, productIds: selectedIds }))}
+        itemDisplayField="name"
+        itemSearchFields={['name', 'description']}
+        itemFilterField="type"
+        itemFilterOptions={['Exam', 'Quiz', 'DomainQuiz']}
+        renderItem={(product) => (
+          <div className="flex-1">
+            <div className="font-medium">{product?.name || 'Untitled Product'}</div>
+            <div className="text-sm text-muted-foreground mt-1">{product?.description || ''}</div>
+            <div className="flex gap-2 mt-2">
+              <Badge variant="secondary">{product?.type || 'Unknown'}</Badge>
+              <Badge variant="outline">${product?.price?.amount || 0}</Badge>
+              <Badge variant="outline">{product?.status || 'Unknown'}</Badge>
+            </div>
+          </div>
+        )}
+        renderSelectedItem={(product) => (
+          <div className="flex-1">
+            <div className="font-medium">{product?.name || 'Untitled Product'}</div>
+            <div className="text-sm text-muted-foreground">${product?.price?.amount || 0} • {product?.type || 'Unknown'}</div>
+          </div>
+        )}
+      />
     </>
   );
 }
