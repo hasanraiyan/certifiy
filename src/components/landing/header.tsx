@@ -7,7 +7,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { CheckCircle, Menu } from 'lucide-react';
 import { CartIcon } from '@/components/cart/cart-icon';
 
-export function Header() {
+export function LandingHeader() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (

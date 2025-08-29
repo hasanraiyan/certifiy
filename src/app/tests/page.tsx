@@ -115,263 +115,206 @@ export default function TestLibraryPage() {
   };
 
   return (
-    <>
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-border">
-        <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <Link href="/" className="flex items-center space-x-2 text-xl font-bold text-primary">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>Certify</span>
-          </Link>
-          <div className="hidden md:flex items-center space-x-8 text-sm font-semibold text-foreground">
-            <Link href="/#features" className="hover:text-accent transition-colors">Features</Link>
-            <Link href="/tests" className="text-primary font-bold">Test Library</Link>
-            <Link href="/login" className="hover:text-accent transition-colors">Login</Link>
-            <Link href="/signup" className="bg-primary hover:bg-primary/90 text-white font-bold py-2.5 px-5 rounded-lg shadow-sm transition-all">
-              Start Free Test
-            </Link>
-          </div>
-          <div className="flex items-center">
-            <Link href="/cart" className="relative p-2">
-              <ShoppingCart className="h-6 w-6" />
-              {itemCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                  {itemCount}
-                </span>
-              )}
-            </Link>
-          </div>
-          {/* Mobile Menu Button Placeholder */}
-          <div className="md:hidden">
-            <button className="text-primary focus:outline-none">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />
-              </svg>
-            </button>
-          </div>
-        </nav>
-      </header>
+    <main className="min-h-screen bg-background">
+      {/* Page Header */}
+      <section className="py-16 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground">
+        <div className="container mx-auto px-6 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold">Test Library</h1>
+          <p className="mt-4 text-xl opacity-90 max-w-3xl mx-auto">
+            Browse our collection of PMP practice tests and exam bundles designed to help you pass on your first attempt.
+          </p>
+        </div>
+      </section>
 
-      {/* Main Content */}
-      <main className="min-h-screen bg-background">
-        {/* Page Header */}
-        <section className="py-16 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground">
-          <div className="container mx-auto px-6 text-center">
-            <h1 className="text-4xl md:text-5xl font-bold">Test Library</h1>
-            <p className="mt-4 text-xl opacity-90 max-w-3xl mx-auto">
-              Browse our collection of PMP practice tests and exam bundles designed to help you pass on your first attempt.
-            </p>
-          </div>
-        </section>
-
-        {/* Search and Filter */}
-        <section className="py-8 bg-muted/30 border-b">
-          <div className="container mx-auto px-6">
-            <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
-              <div className="relative w-full md:w-1/3">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <input
-                  type="text"
-                  placeholder="Search tests..."
-                  className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              
-              <div className="flex gap-2 flex-wrap">
-                <Button 
-                  variant={filterType === 'all' ? 'default' : 'outline'} 
-                  size="sm"
-                  onClick={() => setFilterType('all')}
-                >
-                  <Filter className="w-4 h-4 mr-2" />
-                  All Types
-                </Button>
-                <Button 
-                  variant={filterType === 'Exam' ? 'default' : 'outline'} 
-                  size="sm"
-                  onClick={() => setFilterType('Exam')}
-                >
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  Full Exams
-                </Button>
-                <Button 
-                  variant={filterType === 'Quiz' ? 'default' : 'outline'} 
-                  size="sm"
-                  onClick={() => setFilterType('Quiz')}
-                >
-                  <Clock className="w-4 h-4 mr-2" />
-                  Quizzes
-                </Button>
-                <Button 
-                  variant={filterType === 'DomainQuiz' ? 'default' : 'outline'} 
-                  size="sm"
-                  onClick={() => setFilterType('DomainQuiz')}
-                >
-                  <Star className="w-4 h-4 mr-2" />
-                  Domain Quizzes
-                </Button>
-              </div>
+      {/* Search and Filter */}
+      <section className="py-8 bg-muted/30 border-b">
+        <div className="container mx-auto px-6">
+          <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
+            <div className="relative w-full md:w-1/3">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <input
+                type="text"
+                placeholder="Search tests..."
+                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
-          </div>
-        </section>
-
-        {/* Loading State */}
-        {loading && (
-          <section className="py-16">
-            <div className="container mx-auto px-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <Card key={i} className="h-64 animate-pulse">
-                    <CardContent className="p-6">
-                      <div className="h-6 bg-muted rounded w-1/3 mb-4"></div>
-                      <div className="h-8 bg-muted rounded w-3/4 mb-2"></div>
-                      <div className="h-4 bg-muted rounded w-full mb-2"></div>
-                      <div className="h-4 bg-muted rounded w-2/3 mb-6"></div>
-                      <div className="flex justify-between items-center">
-                        <div className="h-8 bg-muted rounded w-1/4"></div>
-                        <div className="h-10 bg-muted rounded w-1/3"></div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* Products Grid */}
-        {!loading && (
-          <section className="py-16">
-            <div className="container mx-auto px-6">
-              {/* Products Section */}
-              <div className="mb-16">
-                <div className="flex items-center gap-2 mb-6">
-                  <BookOpen className="w-5 h-5 text-primary" />
-                  <h2 className="text-2xl font-bold text-foreground">Individual Tests</h2>
-                  <span className="text-sm text-muted-foreground">
-                    ({filteredProducts.length} {filteredProducts.length === 1 ? 'test' : 'tests'})
-                  </span>
-                </div>
-                
-                {filteredProducts.length === 0 ? (
-                  <div className="text-center py-12">
-                    <p className="text-muted-foreground">No tests match your current filters.</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {filteredProducts.map((product) => (
-                      <Card key={product.id} className="flex flex-col hover:shadow-lg transition-shadow">
-                        <CardContent className="p-6 flex-grow">
-                          <div className="flex justify-between items-start mb-4">
-                            <div>
-                              <h3 className="font-bold text-lg">{product.name}</h3>
-                              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{product.description}</p>
-                            </div>
-                            {product.isFeatured && (
-                              <Badge className="bg-yellow-100 text-yellow-800 text-xs">
-                                Featured
-                              </Badge>
-                            )}
-                          </div>
-                          
-                          {getTypeBadge(product)}
-                          
-                          <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-                            <BookOpen className="w-4 h-4" />
-                            <span>{product.questionIds.length} questions</span>
-                          </div>
-                        </CardContent>
-                        
-                        <div className="p-4 bg-muted/30 rounded-b-xl border-t mt-auto">
-                          <div className="flex justify-between items-center">
-                            <span className="text-xl font-bold text-primary">${product.price.amount}</span>
-                            <Button asChild size="sm">
-                              <Link href={getItemLink(product)}>View Details</Link>
-                            </Button>
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </div>
-              
-              {/* Bundles Section */}
-              <div>
-                <div className="flex items-center gap-2 mb-6">
-                  <Package className="w-5 h-5 text-accent" />
-                  <h2 className="text-2xl font-bold text-foreground">Test Bundles</h2>
-                  <span className="text-sm text-muted-foreground">
-                    ({filteredBundles.length} {filteredBundles.length === 1 ? 'bundle' : 'bundles'})
-                  </span>
-                </div>
-                
-                {filteredBundles.length === 0 ? (
-                  <div className="text-center py-12">
-                    <p className="text-muted-foreground">No bundles match your current filters.</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {filteredBundles.map((bundle) => (
-                      <Card key={bundle.id} className="flex flex-col hover:shadow-lg transition-shadow border-2 border-accent/30">
-                        <CardContent className="p-6 flex-grow">
-                          <div className="flex justify-between items-start mb-4">
-                            <div>
-                              <h3 className="font-bold text-lg">{bundle.name}</h3>
-                              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{bundle.description}</p>
-                            </div>
-                            {bundle.isFeatured && (
-                              <Badge className="bg-yellow-100 text-yellow-800 text-xs">
-                                Featured
-                              </Badge>
-                            )}
-                          </div>
-                          
-                          {getTypeBadge(bundle)}
-                          
-                          <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-                            <Package className="w-4 h-4" />
-                            <span>{bundle.productIds.length} tests included</span>
-                          </div>
-                        </CardContent>
-                        
-                        <div className="p-4 bg-muted/30 rounded-b-xl border-t mt-auto">
-                          <div className="flex justify-between items-center">
-                            <span className="text-xl font-bold text-primary">${bundle.price.amount}</span>
-                            <Button asChild size="sm" variant="secondary">
-                              <Link href={getItemLink(bundle)}>View Bundle</Link>
-                            </Button>
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </section>
-        )}
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-white border-t border-border">
-        <div className="container mx-auto px-6 py-8">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <div className="text-sm text-muted-foreground">
-              &copy; 2025 Certify. All Rights Reserved.
-            </div>
-            <div className="flex space-x-6 text-sm font-medium">
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">Privacy</a>
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">Terms</a>
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">Contact</a>
+            
+            <div className="flex gap-2 flex-wrap">
+              <Button 
+                variant={filterType === 'all' ? 'default' : 'outline'} 
+                size="sm"
+                onClick={() => setFilterType('all')}
+              >
+                <Filter className="w-4 h-4 mr-2" />
+                All Types
+              </Button>
+              <Button 
+                variant={filterType === 'Exam' ? 'default' : 'outline'} 
+                size="sm"
+                onClick={() => setFilterType('Exam')}
+              >
+                <BookOpen className="w-4 h-4 mr-2" />
+                Full Exams
+              </Button>
+              <Button 
+                variant={filterType === 'Quiz' ? 'default' : 'outline'} 
+                size="sm"
+                onClick={() => setFilterType('Quiz')}
+              >
+                <Clock className="w-4 h-4 mr-2" />
+                Quizzes
+              </Button>
+              <Button 
+                variant={filterType === 'DomainQuiz' ? 'default' : 'outline'} 
+                size="sm"
+                onClick={() => setFilterType('DomainQuiz')}
+              >
+                <Star className="w-4 h-4 mr-2" />
+                Domain Quizzes
+              </Button>
             </div>
           </div>
         </div>
-      </footer>
-    </>
+      </section>
+
+      {/* Loading State */}
+      {loading && (
+        <section className="py-16">
+          <div className="container mx-auto px-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <Card key={i} className="h-64 animate-pulse">
+                  <CardContent className="p-6">
+                    <div className="h-6 bg-muted rounded w-1/3 mb-4"></div>
+                    <div className="h-8 bg-muted rounded w-3/4 mb-2"></div>
+                    <div className="h-4 bg-muted rounded w-full mb-2"></div>
+                    <div className="h-4 bg-muted rounded w-2/3 mb-6"></div>
+                    <div className="flex justify-between items-center">
+                      <div className="h-8 bg-muted rounded w-1/4"></div>
+                      <div className="h-10 bg-muted rounded w-1/3"></div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Products Grid */}
+      {!loading && (
+        <section className="py-16">
+          <div className="container mx-auto px-6">
+            {/* Products Section */}
+            <div className="mb-16">
+              <div className="flex items-center gap-2 mb-6">
+                <BookOpen className="w-5 h-5 text-primary" />
+                <h2 className="text-2xl font-bold text-foreground">Individual Tests</h2>
+                <span className="text-sm text-muted-foreground">
+                  ({filteredProducts.length} {filteredProducts.length === 1 ? 'test' : 'tests'})
+                </span>
+              </div>
+              
+              {filteredProducts.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">No tests match your current filters.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {filteredProducts.map((product) => (
+                    <Card key={product.id} className="flex flex-col hover:shadow-lg transition-shadow">
+                      <CardContent className="p-6 flex-grow">
+                        <div className="flex justify-between items-start mb-4">
+                          <div>
+                            <h3 className="font-bold text-lg">{product.name}</h3>
+                            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{product.description}</p>
+                          </div>
+                          {product.isFeatured && (
+                            <Badge className="bg-yellow-100 text-yellow-800 text-xs">
+                              Featured
+                            </Badge>
+                          )}
+                        </div>
+                        
+                        {getTypeBadge(product)}
+                        
+                        <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+                          <BookOpen className="w-4 h-4" />
+                          <span>{product.questionIds.length} questions</span>
+                        </div>
+                      </CardContent>
+                      
+                      <div className="p-4 bg-muted/30 rounded-b-xl border-t mt-auto">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xl font-bold text-primary">${product.price.amount}</span>
+                          <Button asChild size="sm">
+                            <Link href={getItemLink(product)}>View Details</Link>
+                          </Button>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            {/* Bundles Section */}
+            <div>
+              <div className="flex items-center gap-2 mb-6">
+                <Package className="w-5 h-5 text-accent" />
+                <h2 className="text-2xl font-bold text-foreground">Test Bundles</h2>
+                <span className="text-sm text-muted-foreground">
+                  ({filteredBundles.length} {filteredBundles.length === 1 ? 'bundle' : 'bundles'})
+                </span>
+              </div>
+              
+              {filteredBundles.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">No bundles match your current filters.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {filteredBundles.map((bundle) => (
+                    <Card key={bundle.id} className="flex flex-col hover:shadow-lg transition-shadow border-2 border-accent/30">
+                      <CardContent className="p-6 flex-grow">
+                        <div className="flex justify-between items-start mb-4">
+                          <div>
+                            <h3 className="font-bold text-lg">{bundle.name}</h3>
+                            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{bundle.description}</p>
+                          </div>
+                          {bundle.isFeatured && (
+                            <Badge className="bg-yellow-100 text-yellow-800 text-xs">
+                              Featured
+                            </Badge>
+                          )}
+                        </div>
+                        
+                        {getTypeBadge(bundle)}
+                        
+                        <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+                          <Package className="w-4 h-4" />
+                          <span>{bundle.productIds.length} tests included</span>
+                        </div>
+                      </CardContent>
+                      
+                      <div className="p-4 bg-muted/30 rounded-b-xl border-t mt-auto">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xl font-bold text-primary">${bundle.price.amount}</span>
+                          <Button asChild size="sm" variant="secondary">
+                            <Link href={getItemLink(bundle)}>View Bundle</Link>
+                          </Button>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+    </main>
   );
 }

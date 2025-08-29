@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { CartProvider } from "@/context/cart-context";
+import { PageLayout } from "@/components/layout/page-layout";
 // Development components (commented out for production)
 import { DevAuthPanel } from "@/components/dev/dev-auth-panel";
 import { DevStatusBar } from "@/components/dev/dev-status-bar";
@@ -27,7 +28,9 @@ export default function RootLayout({
       <body className={cn("min-h-screen bg-white font-sans text-foreground antialiased", inter.variable)}>
         <CartProvider>
           <DevStatusBar />
-          {children}
+          <PageLayout>
+            {children}
+          </PageLayout>
           <DevAuthPanel />
         </CartProvider>
       </body>
