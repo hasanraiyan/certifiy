@@ -9,7 +9,7 @@ import { handleKeyboardNavigation, KeyboardNavigationOptions } from '@/lib/exam/
 export interface UseKeyboardNavigationOptions extends KeyboardNavigationOptions {
   enabled?: boolean
   element?: HTMLElement | null
-  dependencies?: any[]
+  dependencies?: unknown[]
 }
 
 export function useKeyboardNavigation(options: UseKeyboardNavigationOptions) {
@@ -89,7 +89,7 @@ export function useNavigatorKeyboardNavigation({
   onToggleBookmarkFilter,
   enabled = true
 }: {
-  questions: any[]
+  questions: import('@/lib/exam/types').Question[]
   currentQuestionIndex: number
   onQuestionSelect: (index: number) => void
   onToggleBookmarkFilter?: () => void
@@ -214,7 +214,7 @@ export function useReviewKeyboardNavigation({
   onReturnToExam,
   enabled = true
 }: {
-  questions: any[]
+  questions: import('@/lib/exam/types').Question[]
   currentQuestionIndex: number
   onQuestionSelect: (index: number) => void
   onSubmitExam?: () => void

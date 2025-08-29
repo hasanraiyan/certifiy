@@ -234,8 +234,8 @@ declare global {
   function it(name: string, fn: () => void): void;
   namespace expect {
     interface Matchers<R> {
-      toBe(expected: any): R;
-      toThrow(expected?: any): R;
+      toBe(expected: unknown): R;
+      toThrow(expected?: unknown): R;
       not: Matchers<R>;
       toMatch(expected: RegExp): R;
     }

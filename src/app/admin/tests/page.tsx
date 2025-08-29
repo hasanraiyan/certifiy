@@ -278,9 +278,9 @@ export default function TestManagement() {
                               <div key={d.name}>
                                   <div className="flex justify-between text-xs mb-1">
                                       <span>{d.name}</span>
-                                      <span>{`${getDomainCount(d.name as any)} / ${d.target}`}</span>
+                                      <span>{`${getDomainCount(d.name as Question['domain'])} / ${d.target}`}</span>
                                   </div>
-                                  <Progress value={(getDomainCount(d.name as any) / d.target) * 100} className="h-1.5" />
+                                  <Progress value={(getDomainCount(d.name as Question['domain']) / d.target) * 100} className="h-1.5" />
                               </div>
                           ))}
                       </div>
@@ -335,9 +335,9 @@ export default function TestManagement() {
                                   <div key={d.name}>
                                       <div className="flex justify-between text-xs mb-1">
                                           <span className="font-medium">{d.name}</span>
-                                          <span>{`${getDomainCount(d.name as any)} questions (${selectedQuestions.length > 0 ? ((getDomainCount(d.name as any)/selectedQuestions.length)*100).toFixed(0) : 0}%)`}</span>
+                                          <span>{`${getDomainCount(d.name as Question['domain'])} questions (${selectedQuestions.length > 0 ? ((getDomainCount(d.name as Question['domain'])/selectedQuestions.length)*100).toFixed(0) : 0}%)`}</span>
                                       </div>
-                                      <Progress value={selectedQuestions.length > 0 ? (getDomainCount(d.name as any) / selectedQuestions.length) * 100 : 0} className="h-2" />
+                                      <Progress value={selectedQuestions.length > 0 ? (getDomainCount(d.name as Question['domain']) / selectedQuestions.length) * 100 : 0} className="h-2" />
                                   </div>
                               ))}
                           </div>

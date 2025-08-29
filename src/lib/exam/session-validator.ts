@@ -582,7 +582,7 @@ function getDefaultExamSettings() {
   }
 }
 
-function setNestedProperty(obj: any, path: string, value: any) {
+function setNestedProperty(obj: Record<string, any>, path: string, value: any) {
   const keys = path.split('.')
   let current = obj
   
@@ -597,7 +597,7 @@ function setNestedProperty(obj: any, path: string, value: any) {
   current[keys[keys.length - 1]] = value
 }
 
-function removeNestedProperty(obj: any, path: string) {
+function removeNestedProperty(obj: Record<string, any>, path: string) {
   const keys = path.split('.')
   let current = obj
   
@@ -610,7 +610,7 @@ function removeNestedProperty(obj: any, path: string) {
   delete current[keys[keys.length - 1]]
 }
 
-function resetNestedProperty(obj: any, path: string) {
+function resetNestedProperty(obj: Record<string, any>, path: string) {
   const keys = path.split('.')
   let current = obj
   
@@ -637,7 +637,7 @@ function resetNestedProperty(obj: any, path: string) {
 /**
  * Quick validation check for critical errors only
  */
-export function hasValidSessionStructure(session: any): boolean {
+export function hasValidSessionStructure(session: unknown): boolean {
   return !!(
     session &&
     typeof session === 'object' &&

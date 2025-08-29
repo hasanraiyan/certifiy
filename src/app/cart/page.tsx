@@ -21,7 +21,7 @@ export default function CartPage() {
   const router = useRouter();
 
   // Helper function to determine if item is a bundle
-  const isBundle = (product: any): product is { productIds: string[] } => {
+  const isBundle = (product: Product | Bundle): product is Bundle => {
     return 'productIds' in product;
   };
 

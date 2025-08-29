@@ -22,7 +22,7 @@ interface AdminUser {
 }
 
 export default function AdminUserManagement() {
-  const [selectedAdmin, setSelectedAdmin] = useState<AdminUser | null>(null);
+  const [, setSelectedAdmin] = useState<AdminUser | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
 

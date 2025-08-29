@@ -51,7 +51,7 @@ const mockQuestions: Question[] = [
 
 // --- COMPONENT ---
 export default function QuestionBankManagement() {
-  const [questions, setQuestions] = useState<Question[]>(mockQuestions);
+  const [questions] = useState<Question[]>(mockQuestions);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState<Partial<Question>>({});

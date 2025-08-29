@@ -473,7 +473,7 @@ export default function PracticeSetupPage() {
                       <li>• Read each question carefully and think through your reasoning</li>
                       <li>• Use the explanations to understand why answers are correct or incorrect</li>
                       <li>• Bookmark challenging questions to review them later</li>
-                      <li>• Take breaks when needed - there's no time pressure</li>
+                      <li>• Take breaks when needed - there&apos;s no time pressure</li>
                       <li>• Focus on understanding concepts rather than memorizing answers</li>
                       <li>• Review your bookmarked questions before moving to test mode</li>
                     </ul>

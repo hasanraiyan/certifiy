@@ -382,7 +382,7 @@ export function deepClone<T>(obj: T): T {
 
   const clonedObj = {} as T;
   Object.keys(obj).forEach(key => {
-    (clonedObj as any)[key] = deepClone((obj as any)[key]);
+    (clonedObj as Record<string, unknown>)[key] = deepClone((obj as Record<string, unknown>)[key]);
   });
 
   return clonedObj;

@@ -10,7 +10,6 @@ import {
   FileText, 
   Plus,
   TrendingUp,
-  TrendingDown,
   User
 } from 'lucide-react';
 
