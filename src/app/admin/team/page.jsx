@@ -14,8 +14,9 @@ export default function AdminUserManagement() {
   // Get state and functions from the context
   const { team, createTeamMember, updateTeamMember } = useAdmin();
   
-  const [, setSelectedAdmin] = useState(null);
+  const [selectedAdmin, setSelectedAdmin] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
 
   const [newAdmin, setNewAdmin] = useState({
     name: '',
@@ -39,6 +40,7 @@ export default function AdminUserManagement() {
 
   const handleEditAdmin = (admin) => {
     setSelectedAdmin(admin);
+    setIsEditDrawerOpen(true);
   };
 
   const handleDeleteAdmin = (adminId) => {
@@ -47,8 +49,11 @@ export default function AdminUserManagement() {
   };
 
   const handleToggleStatus = (adminId) => {
-    // TODO: Implement toggle status
-    console.log('Toggling status for admin:', adminId);
+    const admin = team.find(a => a.id === adminId);
+    if (admin) {
+      const newStatus = admin.status === 'active' ? 'inactive' : 'active';
+      updateTeamMember(adminId, { status: newStatus });
+    }
   };
 
   const filteredAdmins = team.filter(admin => {
@@ -214,6 +219,87 @@ export default function AdminUserManagement() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Edit Admin Drawer */}
+      {isEditDrawerOpen && selectedAdmin && (
+        <div className="fixed inset-0 z-50 overflow-hidden">
+          <div className="absolute inset-0 bg-black bg-opacity-50" onClick={() => setIsEditDrawerOpen(false)}></div>
+          <div className="absolute inset-y-0 right-0 max-w-full flex">
+            <div className="relative w-screen max-w-md">
+              <div className="h-full flex flex-col bg-white shadow-xl">
+                <div className="flex-1 overflow-y-auto">
+                  <div className="px-4 py-6 sm:px-6 bg-gray-50">
+                    <div className="flex items-start justify-between">
+                      <h2 className="text-lg font-medium text-gray-900">Edit Admin</h2>
+                      <button
+                        type="button"
+                        className="ml-3 h-7 flex items-center justify-center rounded-md text-gray-400 hover:text-gray-500 focus:outline-none"
+                        onClick={() => setIsEditDrawerOpen(false)}
+                      >
+                        <span className="sr-only">Close panel</span>
+                        <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="px-4 py-6 sm:px-6">
+                    <div className="space-y-6">
+                      <div>
+                        <Label htmlFor="edit-admin-name">Full Name</Label>
+                        <Input
+                          id="edit-admin-name"
+                          value={selectedAdmin.name}
+                          onChange={(e) => setSelectedAdmin(prev => ({ ...prev, name: e.target.value }))}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="edit-admin-email">Email Address</Label>
+                        <Input
+                          id="edit-admin-email"
+                          type="email"
+                          value={selectedAdmin.email}
+                          onChange={(e) => setSelectedAdmin(prev => ({ ...prev, email: e.target.value }))}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="edit-admin-status">Status</Label>
+                        <Select 
+                          value={selectedAdmin.status} 
+                          onValueChange={(value) => setSelectedAdmin(prev => ({ ...prev, status: value }))}
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="active">Active</SelectItem>
+                            <SelectItem value="inactive">Inactive</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex-shrink-0 px-4 py-4 flex justify-end gap-3 bg-gray-50">
+                  <Button variant="outline" onClick={() => setIsEditDrawerOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={() => {
+                      updateTeamMember(selectedAdmin.id, selectedAdmin);
+                      setIsEditDrawerOpen(false);
+                    }}
+                  >
+                    Save Changes
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

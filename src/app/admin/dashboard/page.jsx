@@ -12,60 +12,77 @@ import {
   TrendingUp,
   User
 } from 'lucide-react';
-
-const activityFeed = [
-  {
-    id: 1,
-    type: 'purchase',
-    title: 'New Purchase',
-    description: 'Full Access by j.doe@... • 2m ago',
-    icon: <CreditCard className="w-5 h-5" />,
-    color: 'bg-green-500/10 text-green-500'
-  },
-  {
-    id: 2,
-    type: 'test',
-    title: 'Test Completed',
-    description: 'Mock Exam #1 by s.wong@... • 5m ago',
-    icon: <FileText className="w-5 h-5" />,
-    color: 'bg-primary/10 text-primary'
-  },
-  {
-    id: 3,
-    type: 'user',
-    title: 'New User Signup',
-    description: 'k.smith@... joined • 12m ago',
-    icon: <User className="w-5 h-5" />,
-    color: 'bg-accent/10 text-accent'
-  }
-];
-
-const topTests = [
-  { name: 'PMP Mock Exam #1', attempts: 1234 },
-  { name: 'Agile Practice Test', attempts: 987 },
-  { name: 'Risk Management Quiz', attempts: 756 }
-];
-
-const newestStudents = [
-  { name: 'Sarah Wong', initials: 'SW', time: '5m ago' },
-  { name: 'John Doe', initials: 'JD', time: '2h ago' }
-];
-
-const platformStatus = [
-  { service: 'API', status: 'Operational', color: 'text-green-500' },
-  { service: 'Database', status: 'Operational', color: 'text-green-500' },
-  { service: 'Payment Gateway', status: 'Operational', color: 'text-green-500' }
-];
-
-const quickActions = [
-  { name: 'Add New Question', href: '/admin/questions', icon: <Plus className="w-5 h-5" /> },
-  { name: 'Create New Test', href: '/admin/tests', icon: <FileText className="w-5 h-5" /> },
-  { name: 'Manage Products', href: '/admin/products', icon: <CreditCard className="w-5 h-5" /> },
-  { name: 'View All Students', href: '/admin/users', icon: <Users className="w-5 h-5" /> }
-];
+import { useAdmin } from '@/context/admin-context';
 
 export default function AdminDashboard() {
+  const { users, products, tests } = useAdmin();
   const [dateRange, setDateRange] = useState('Last 30 Days');
+
+  // Calculate Total Revenue
+  const totalRevenue = products.reduce((sum, product) => {
+    return sum + (product.price?.amount || 0);
+  }, 0);
+
+  // Calculate New Users and Active Users
+  const newUsers = users.length;
+  const activeUsers = users.filter(user => user.status === 'Active').length;
+
+  // Calculate Average Test Score (placeholder implementation)
+  const avgTestScore = 78.4; // This would need more complex logic based on actual test data
+
+  // Generate activity feed from users and products
+  const activityFeed = [
+    {
+      id: 1,
+      type: 'purchase',
+      title: 'New Purchase',
+      description: `Full Access by ${users.length > 0 ? users[0].email : 'user'} • 2m ago`,
+      icon: <CreditCard className="w-5 h-5" />,
+      color: 'bg-green-500/10 text-green-500'
+    },
+    {
+      id: 2,
+      type: 'test',
+      title: 'Test Completed',
+      description: `Mock Exam #1 by ${users.length > 1 ? users[1].email : 'user'} • 5m ago`,
+      icon: <FileText className="w-5 h-5" />,
+      color: 'bg-primary/10 text-primary'
+    },
+    {
+      id: 3,
+      type: 'user',
+      title: 'New User Signup',
+      description: `${users.length > 2 ? users[2].email : 'user'} joined • 12m ago`,
+      icon: <User className="w-5 h-5" />,
+      color: 'bg-accent/10 text-accent'
+    }
+  ];
+
+  // Generate top tests from tests data
+  const topTests = tests.map((test, index) => ({
+    name: test.name,
+    attempts: 1234 - (index * 100) // Placeholder values
+  }));
+
+  // Generate newest students from users data
+  const newestStudents = users.slice(0, 2).map(user => ({
+    name: user.name,
+    initials: user.name.split(' ').map(n => n[0]).join('').toUpperCase(),
+    time: user.lastActive || 'Recently'
+  }));
+
+  const platformStatus = [
+    { service: 'API', status: 'Operational', color: 'text-green-500' },
+    { service: 'Database', status: 'Operational', color: 'text-green-500' },
+    { service: 'Payment Gateway', status: 'Operational', color: 'text-green-500' }
+  ];
+
+  const quickActions = [
+    { name: 'Add New Question', href: '/admin/questions', icon: <Plus className="w-5 h-5" /> },
+    { name: 'Create New Test', href: '/admin/tests', icon: <FileText className="w-5 h-5" /> },
+    { name: 'Manage Products', href: '/admin/products', icon: <CreditCard className="w-5 h-5" /> },
+    { name: 'View All Students', href: '/admin/users', icon: <Users className="w-5 h-5" /> }
+  ];
 
   return (
     <>
@@ -74,7 +91,7 @@ export default function AdminDashboard() {
         <div>
           <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
           <p className="mt-1 text-muted-foreground">
-            Welcome back, Alice. Here&apos;s your platform overview.
+            Welcome back. Here&apos;s your platform overview.
           </p>
         </div>
         <div className="relative">
@@ -148,7 +165,7 @@ export default function AdminDashboard() {
                     +12.5%
                   </div>
                 </div>
-                <p className="mt-2 text-3xl font-bold text-foreground">$24,750</p>
+                <p className="mt-2 text-3xl font-bold text-foreground">${totalRevenue.toLocaleString()}</p>
                 <div className="h-8 mt-2 opacity-50">
                   <svg viewBox="0 0 100 25" className="w-full h-full">
                     <polyline 
@@ -171,7 +188,7 @@ export default function AdminDashboard() {
                     +15.6%
                   </div>
                 </div>
-                <p className="mt-2 text-3xl font-bold text-foreground">89</p>
+                <p className="mt-2 text-3xl font-bold text-foreground">{newUsers}</p>
                 <div className="h-8 mt-2 opacity-50">
                   <svg viewBox="0 0 100 25" className="w-full h-full">
                     <polyline 
@@ -194,7 +211,7 @@ export default function AdminDashboard() {
                     +2.3%
                   </div>
                 </div>
-                <p className="mt-2 text-3xl font-bold text-foreground">1,247</p>
+                <p className="mt-2 text-3xl font-bold text-foreground">{activeUsers}</p>
                 <div className="h-8 mt-2 opacity-50">
                   <svg viewBox="0 0 100 25" className="w-full h-full">
                     <polyline 
@@ -217,7 +234,7 @@ export default function AdminDashboard() {
                     +4.2%
                   </div>
                 </div>
-                <p className="mt-2 text-3xl font-bold text-foreground">78.4%</p>
+                <p className="mt-2 text-3xl font-bold text-foreground">{avgTestScore}%</p>
                 <div className="h-8 mt-2 opacity-50">
                   <svg viewBox="0 0 100 25" className="w-full h-full">
                     <polyline 

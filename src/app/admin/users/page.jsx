@@ -22,6 +22,7 @@ export default function StudentManagementPage() {
     
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [isCreatingNewUser, setIsCreatingNewUser] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [newUser, setNewUser] = useState({ name: '', email: '' });
@@ -169,34 +170,99 @@ export default function StudentManagementPage() {
                                     <Button variant="ghost" size="icon" onClick={closeDrawer}><X className="w-5 h-5" /></Button>
                                 </div>
                                 <div className="mt-4 flex flex-wrap gap-4">
-                                    <Button variant="destructive" className="bg-destructive/10 text-destructive hover:bg-destructive/20">Suspend User</Button>
+                                    <Button 
+                                        variant="secondary" 
+                                        onClick={() => setIsEditing(true)}
+                                    >
+                                        Edit User
+                                    </Button>
+                                    <Button 
+                                        variant="destructive" 
+                                        className="bg-destructive/10 text-destructive hover:bg-destructive/20"
+                                        onClick={() => {
+                                            updateUser(selectedStudent.id, { ...selectedStudent, status: 'Suspended' });
+                                            closeDrawer();
+                                        }}
+                                    >
+                                        Suspend User
+                                    </Button>
                                     <Button variant="secondary">Send Password Reset</Button>
                                 </div>
                             </div>
                             <div className="flex-grow p-6 space-y-6 overflow-y-auto">
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                                    <Card className="p-3"><p className="text-xs text-muted-foreground">LTV</p><p className="font-bold text-lg">${selectedStudent.ltv.toFixed(2)}</p></Card>
-                                    <Card className="p-3"><p className="text-xs text-muted-foreground">Avg. Score</p><p className="font-bold text-lg">82%</p></Card>
-                                    <Card className="p-3"><p className="text-xs text-muted-foreground">Tests Taken</p><p className="font-bold text-lg">14</p></Card>
-                                    <Card className="p-3"><p className="text-xs text-muted-foreground">Joined</p><p className="font-bold text-lg">{selectedStudent.joinDate}</p></Card>
-                                </div>
-                                <Card>
-                                    <CardHeader><CardTitle>Activity Timeline</CardTitle></CardHeader>
-                                    <CardContent className="space-y-4">
-                                        <div className="flex gap-3 text-sm">
-                                            <div className="font-semibold text-muted-foreground w-28 shrink-0">Jan 15, 2:30pm</div>
-                                            <div><strong className="font-semibold">Completed</strong> Mock Exam #2 (Score: 88%)</div>
+                                {isEditing ? (
+                                    // Edit Mode
+                                    <div className="space-y-6">
+                                        <div className="space-y-4">
+                                            <div>
+                                                <Label htmlFor="edit-user-name">Full Name</Label>
+                                                <Input 
+                                                    id="edit-user-name"
+                                                    value={selectedStudent.name}
+                                                    onChange={(e) => setSelectedStudent(prev => ({...prev, name: e.target.value}))}
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label htmlFor="edit-user-email">Email Address</Label>
+                                                <Input 
+                                                    id="edit-user-email"
+                                                    type="email"
+                                                    value={selectedStudent.email}
+                                                    onChange={(e) => setSelectedStudent(prev => ({...prev, email: e.target.value}))}
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label htmlFor="edit-user-status">Status</Label>
+                                                <Select 
+                                                    value={selectedStudent.status} 
+                                                    onValueChange={(value) => setSelectedStudent(prev => ({...prev, status: value}))}
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="Active">Active</SelectItem>
+                                                        <SelectItem value="Suspended">Suspended</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
                                         </div>
-                                        <div className="flex gap-3 text-sm">
-                                            <div className="font-semibold text-muted-foreground w-28 shrink-0">Jan 10, 4:15pm</div>
-                                            <div><strong className="font-semibold">Purchased</strong> Full Access - Yearly</div>
+                                        <div className="flex justify-end gap-2">
+                                            <Button variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
+                                            <Button onClick={() => {
+                                                handleUpdateUser();
+                                                setIsEditing(false);
+                                            }}>Save Changes</Button>
                                         </div>
-                                        <div className="flex gap-3 text-sm">
-                                            <div className="font-semibold text-muted-foreground w-28 shrink-0">Jan 8, 11:00am</div>
-                                            <div><strong className="font-semibold">Completed</strong> Agile Practice Test (Score: 75%)</div>
+                                    </div>
+                                ) : (
+                                    // View Mode
+                                    <>
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                                            <Card className="p-3"><p className="text-xs text-muted-foreground">LTV</p><p className="font-bold text-lg">${selectedStudent.ltv.toFixed(2)}</p></Card>
+                                            <Card className="p-3"><p className="text-xs text-muted-foreground">Avg. Score</p><p className="font-bold text-lg">82%</p></Card>
+                                            <Card className="p-3"><p className="text-xs text-muted-foreground">Tests Taken</p><p className="font-bold text-lg">14</p></Card>
+                                            <Card className="p-3"><p className="text-xs text-muted-foreground">Joined</p><p className="font-bold text-lg">{selectedStudent.joinDate}</p></Card>
                                         </div>
-                                    </CardContent>
-                                </Card>
+                                        <Card>
+                                            <CardHeader><CardTitle>Activity Timeline</CardTitle></CardHeader>
+                                            <CardContent className="space-y-4">
+                                                <div className="flex gap-3 text-sm">
+                                                    <div className="font-semibold text-muted-foreground w-28 shrink-0">Jan 15, 2:30pm</div>
+                                                    <div><strong className="font-semibold">Completed</strong> Mock Exam #2 (Score: 88%)</div>
+                                                </div>
+                                                <div className="flex gap-3 text-sm">
+                                                    <div className="font-semibold text-muted-foreground w-28 shrink-0">Jan 10, 4:15pm</div>
+                                                    <div><strong className="font-semibold">Purchased</strong> Full Access - Yearly</div>
+                                                </div>
+                                                <div className="flex gap-3 text-sm">
+                                                    <div className="font-semibold text-muted-foreground w-28 shrink-0">Jan 8, 11:00am</div>
+                                                    <div><strong className="font-semibold">Completed</strong> Agile Practice Test (Score: 75%)</div>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </>
+                                )}
                             </div>
                         </>
                     ) : (
