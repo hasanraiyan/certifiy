@@ -1,0 +1,52 @@
+[
+  {
+    "id": 1,
+    "name": "John Student",
+    "email": "student@example.com",
+    "status": "Active",
+    "ltv": 279.00,
+    "lastActive": "2h ago",
+    "joinDate": "3 months ago",
+    "purchases": 3
+  },
+  {
+    "id": 2,
+    "name": "Sarah Wilson",
+    "email": "sarah.wilson@example.com",
+    "status": "Active",
+    "ltv": 0.00,
+    "lastActive": "1d ago",
+    "joinDate": "1 month ago",
+    "purchases": 0
+  },
+  {
+    "id": 3,
+    "name": "Michael Chen",
+    "email": "michael.chen@example.com",
+    "status": "Suspended",
+    "ltv": 49.00,
+    "lastActive": "3w ago",
+    "joinDate": "6 months ago",
+    "purchases": 1
+  },
+  {
+    "id": 4,
+    "name": "Emily Rodriguez",
+    "email": "emily.r@example.com",
+    "status": "Active",
+    "ltv": 279.00,
+    "lastActive": "5h ago",
+    "joinDate": "2 weeks ago",
+    "purchases": 2
+  },
+  {
+    "id": 5,
+    "name": "David Lee",
+    "email": "david.lee@example.com",
+    "status": "Active",
+    "ltv": 0.00,
+    "lastActive": "2d ago",
+    "joinDate": "1 week ago",
+    "purchases": 0
+  }
+]

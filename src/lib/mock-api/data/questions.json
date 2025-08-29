@@ -1,0 +1,75 @@
+[
+  {
+    "id": 1,
+    "text": "What is the primary purpose of a project charter?",
+    "type": "MCQ",
+    "domain": "Process",
+    "difficulty": "Medium",
+    "status": "Active",
+    "options": [
+      "Option A",
+      "Option B",
+      "Option C",
+      "Option D"
+    ],
+    "correctAnswer": 2,
+    "explanation": "The Project Charter formally authorizes the project and gives the project manager the authority to apply organizational resources."
+  },
+  {
+    "id": 2,
+    "text": "Which of the following is NOT a characteristic of a project?",
+    "type": "MCQ",
+    "domain": "People",
+    "difficulty": "Easy",
+    "status": "Active",
+    "options": [
+      "Option A",
+      "Option B",
+      "Option C",
+      "Option D"
+    ],
+    "correctAnswer": 1,
+    "explanation": "Ongoing operations are not projects as they are not temporary endeavors."
+  },
+  {
+    "id": 3,
+    "text": "A project manager is identifying risks. Which process is this?",
+    "type": "MCQ",
+    "domain": "Process",
+    "difficulty": "Hard",
+    "status": "Draft",
+    "options": [
+      "Option A",
+      "Option B",
+      "Option C",
+      "Option D"
+    ],
+    "correctAnswer": 0,
+    "explanation": "Identifying risks is a key part of the Risk Management knowledge area."
+  },
+  {
+    "id": 4,
+    "text": "Identify the area representing the critical path on the provided diagram.",
+    "type": "Hotspot",
+    "domain": "Process",
+    "difficulty": "Hard",
+    "status": "Draft",
+    "explanation": "The critical path is the longest sequence of dependent tasks."
+  },
+  {
+    "id": 5,
+    "text": "Which of these is an output of the Develop Project Team process?",
+    "type": "MCQ",
+    "domain": "People",
+    "difficulty": "Medium",
+    "status": "Active",
+    "options": [
+      "Option A",
+      "Option B",
+      "Option C",
+      "Option D"
+    ],
+    "correctAnswer": 3,
+    "explanation": "Team performance assessments are a key output."
+  }
+]

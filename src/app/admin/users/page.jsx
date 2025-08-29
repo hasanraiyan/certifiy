@@ -14,25 +14,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, X } from 'lucide-react';
-
-// --- MOCK DATA ---
-const mockStudents = [
-  { id: 1, name: 'John Student', email: 'student@example.com', status: 'Active', ltv: 279.00, lastActive: '2h ago', joinDate: '3 months ago', purchases: 3 },
-  { id: 2, name: 'Sarah Wilson', email: 'sarah.wilson@example.com', status: 'Active', ltv: 0.00, lastActive: '1d ago', joinDate: '1 month ago', purchases: 0 },
-  { id: 3, name: 'Michael Chen', email: 'michael.chen@example.com', status: 'Suspended', ltv: 49.00, lastActive: '3w ago', joinDate: '6 months ago', purchases: 1 },
-  { id: 4, name: 'Emily Rodriguez', email: 'emily.r@example.com', status: 'Active', ltv: 279.00, lastActive: '5h ago', joinDate: '2 weeks ago', purchases: 2 },
-  { id: 5, name: 'David Lee', email: 'david.lee@example.com', status: 'Active', ltv: 0.00, lastActive: '2d ago', joinDate: '1 week ago', purchases: 0 },
-];
-
-const activityFeed = [
-    { date: 'Jan 15, 2:30pm', action: 'Completed', details: 'Mock Exam #2 (Score: 88%)' },
-    { date: 'Jan 10, 4:15pm', action: 'Purchased', details: 'Full Access - Yearly' },
-    { date: 'Jan 8, 11:00am', action: 'Completed', details: 'Agile Practice Test (Score: 75%)' },
-];
+import { useAdmin } from '@/context/admin-context'; // Import the useAdmin hook
 
 // --- COMPONENT ---
 export default function StudentManagementPage() {
-    const [students] = useState(mockStudents);
+    // Get state and functions from the context
+    const { users, createUser, updateUser } = useAdmin();
+    
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [isCreatingNewUser, setIsCreatingNewUser] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -40,12 +28,12 @@ export default function StudentManagementPage() {
     const [newUser, setNewUser] = useState({ name: '', email: '' });
 
     const filteredStudents = useMemo(() => {
-        if (!searchTerm) return students;
-        return students.filter(s =>
+        if (!searchTerm) return users;
+        return users.filter(s =>
             s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             s.email.toLowerCase().includes(searchTerm.toLowerCase())
         );
-    }, [students, searchTerm]);
+    }, [users, searchTerm]);
 
     const openCreateDrawer = () => {
         setIsCreatingNewUser(true);
@@ -70,6 +58,17 @@ export default function StudentManagementPage() {
         return status === 'Active' ? 'default' : 'destructive';
     }
 
+    const handleCreateUser = () => {
+        createUser(newUser);
+        setIsDrawerOpen(false);
+        setNewUser({ name: '', email: '' });
+    };
+
+    const handleUpdateUser = () => {
+        updateUser(selectedStudent.id, selectedStudent);
+        setIsDrawerOpen(false);
+    };
+
     return (
         <AuthGuard allowedRoles={['admin', 'super_admin']}>
             {/* Page Header */}
@@ -88,11 +87,11 @@ export default function StudentManagementPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
                 <Card>
                     <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Total Students</CardTitle></CardHeader>
-                    <CardContent><p className="text-3xl font-bold">{students.length}</p></CardContent>
+                    <CardContent><p className="text-3xl font-bold">{users.length}</p></CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Active Purchasers</CardTitle></CardHeader>
-                    <CardContent><p className="text-3xl font-bold">{students.filter(s => s.purchases > 0).length}</p></CardContent>
+                    <CardContent><p className="text-3xl font-bold">{users.filter(s => s.purchases > 0).length}</p></CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">New This Month</CardTitle></CardHeader>
@@ -185,12 +184,18 @@ export default function StudentManagementPage() {
                                 <Card>
                                     <CardHeader><CardTitle>Activity Timeline</CardTitle></CardHeader>
                                     <CardContent className="space-y-4">
-                                        {activityFeed.map((activity, index) => (
-                                            <div key={index} className="flex gap-3 text-sm">
-                                                <div className="font-semibold text-muted-foreground w-28 shrink-0">{activity.date}</div>
-                                                <div><strong className="font-semibold">{activity.action}</strong> {activity.details}</div>
-                                            </div>
-                                        ))}
+                                        <div className="flex gap-3 text-sm">
+                                            <div className="font-semibold text-muted-foreground w-28 shrink-0">Jan 15, 2:30pm</div>
+                                            <div><strong className="font-semibold">Completed</strong> Mock Exam #2 (Score: 88%)</div>
+                                        </div>
+                                        <div className="flex gap-3 text-sm">
+                                            <div className="font-semibold text-muted-foreground w-28 shrink-0">Jan 10, 4:15pm</div>
+                                            <div><strong className="font-semibold">Purchased</strong> Full Access - Yearly</div>
+                                        </div>
+                                        <div className="flex gap-3 text-sm">
+                                            <div className="font-semibold text-muted-foreground w-28 shrink-0">Jan 8, 11:00am</div>
+                                            <div><strong className="font-semibold">Completed</strong> Agile Practice Test (Score: 75%)</div>
+                                        </div>
                                     </CardContent>
                                 </Card>
                                 <Card>
@@ -198,15 +203,23 @@ export default function StudentManagementPage() {
                                     <CardContent className="space-y-4">
                                         <div>
                                             <Label className="font-medium text-sm">Purchases</Label>
-                                            <div className="mt-1 text-sm">
-                                                <p>{selectedStudent.purchases} purchases</p>
+                                            <div className="mt-2 text-sm">
+                                                {selectedStudent.purchases > 0 ? (
+                                                    <div className="space-y-2">
+                                                        <div className="flex justify-between">
+                                                            <span>PMP Mock Exam #1</span>
+                                                            <span className="text-muted-foreground">Jan 10, 2025</span>
+                                                        </div>
+                                                        <div className="flex justify-between">
+                                                            <span>Agile Practice Quiz</span>
+                                                            <span className="text-muted-foreground">Dec 15, 2024</span>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-muted-foreground">No purchases yet</p>
+                                                )}
                                             </div>
                                         </div>
-                                        <div>
-                                            <Label className="font-medium text-sm">Admin Notes</Label>
-                                            <Textarea rows={3} className="w-full mt-1 bg-white" placeholder="Add internal notes for this user..." />
-                                        </div>
-                                        <Button className="bg-primary/10 text-primary hover:bg-primary/20">Save Changes</Button>
                                     </CardContent>
                                 </Card>
                             </div>
@@ -214,18 +227,36 @@ export default function StudentManagementPage() {
                     ) : (
                         <>
                             {/* --- CREATE NEW USER TEMPLATE --- */}
-                            <SheetHeader className="bg-white p-6 border-b border-border flex-shrink-0 flex flex-row justify-between items-center">
-                                <SheetTitle className="text-2xl font-bold">Add New Student</SheetTitle>
-                                <Button variant="ghost" size="icon" onClick={closeDrawer}><X className="w-5 h-5" /></Button>
+                            <SheetHeader className="p-6 border-b bg-white">
+                                <SheetTitle>Create New Student</SheetTitle>
+                                <SheetDescription>Enter the details for the new student account.</SheetDescription>
                             </SheetHeader>
-                            <div className="flex-grow p-8 space-y-6 overflow-y-auto">
-                                <div><Label htmlFor="newName" className="font-medium text-sm">Full Name</Label><Input type="text" id="newName" value={newUser.name} onChange={e => setNewUser({...newUser, name: e.target.value})} className="w-full mt-1" placeholder="John Doe" /></div>
-                                <div><Label htmlFor="newEmail" className="font-medium text-sm">Email Address</Label><Input type="email" id="newEmail" value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})} className="w-full mt-1" placeholder="john.doe@example.com" /></div>
-                                <div className="flex items-center gap-3"><Checkbox id="sendInvite" /><Label htmlFor="sendInvite" className="text-sm">Send welcome email with password setup link</Label></div>
+                            <div className="flex-grow p-6 space-y-6 overflow-y-auto">
+                                <div>
+                                    <Label htmlFor="student-name" className="font-medium">Full Name</Label>
+                                    <Input 
+                                        id="student-name" 
+                                        value={newUser.name} 
+                                        onChange={(e) => setNewUser(prev => ({ ...prev, name: e.target.value }))}
+                                        className="mt-1" 
+                                        placeholder="Enter student's full name"
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="student-email" className="font-medium">Email Address</Label>
+                                    <Input 
+                                        id="student-email" 
+                                        type="email" 
+                                        value={newUser.email} 
+                                        onChange={(e) => setNewUser(prev => ({ ...prev, email: e.target.value }))}
+                                        className="mt-1" 
+                                        placeholder="Enter student's email"
+                                    />
+                                </div>
                             </div>
-                            <SheetFooter className="bg-white p-4 border-t border-border flex-shrink-0 flex justify-end gap-4">
-                                <Button variant="ghost" onClick={closeDrawer}>Cancel</Button>
-                                <Button>Create Student</Button>
+                            <SheetFooter className="p-6 border-t bg-white">
+                                <Button variant="outline" onClick={closeDrawer}>Cancel</Button>
+                                <Button onClick={handleCreateUser}>Create Student</Button>
                             </SheetFooter>
                         </>
                     )}

@@ -1,0 +1,23 @@
+[
+  {
+    "id": "1",
+    "name": "PMP Mock Exam #1",
+    "type": "Full Exam",
+    "questionCount": 180,
+    "status": "Active"
+  },
+  {
+    "id": "2",
+    "name": "Agile Practice Test",
+    "type": "Domain Quiz",
+    "questionCount": 60,
+    "status": "Active"
+  },
+  {
+    "id": "3",
+    "name": "Risk Management Quiz",
+    "type": "Knowledge Area",
+    "questionCount": 40,
+    "status": "Draft"
+  }
+]

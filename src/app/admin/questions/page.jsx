@@ -26,19 +26,13 @@ import {
   AlertDialogTrigger 
 } from '@/components/ui/alert-dialog';
 import { Plus, Upload, Trash2 } from 'lucide-react';
-
-// --- MOCK DATA ---
-const mockQuestions = [
-  { id: 1, text: 'What is the primary purpose of a project charter?', type: 'MCQ', domain: 'Process', difficulty: 'Medium', status: 'Active', options: ['Option A', 'Option B', 'Option C', 'Option D'], correctAnswer: 2, explanation: 'The Project Charter formally authorizes the project and gives the project manager the authority to apply organizational resources.' },
-  { id: 2, text: 'Which of the following is NOT a characteristic of a project?', type: 'MCQ', domain: 'People', difficulty: 'Easy', status: 'Active', options: ['Option A', 'Option B', 'Option C', 'Option D'], correctAnswer: 1, explanation: 'Ongoing operations are not projects as they are not temporary endeavors.' },
-  { id: 3, text: 'A project manager is identifying risks. Which process is this?', type: 'MCQ', domain: 'Process', difficulty: 'Hard', status: 'Draft', options: ['Option A', 'Option B', 'Option C', 'Option D'], correctAnswer: 0, explanation: 'Identifying risks is a key part of the Risk Management knowledge area.' },
-  { id: 4, text: 'Identify the area representing the critical path on the provided diagram.', type: 'Hotspot', domain: 'Process', difficulty: 'Hard', status: 'Draft', explanation: 'The critical path is the longest sequence of dependent tasks.'},
-  { id: 5, text: 'Which of these is an output of the Develop Project Team process?', type: 'MCQ', domain: 'People', difficulty: 'Medium', status: 'Active', options: ['Option A', 'Option B', 'Option C', 'Option D'], correctAnswer: 3, explanation: 'Team performance assessments are a key output.' },
-];
+import { useAdmin } from '@/context/admin-context'; // Import the useAdmin hook
 
 // --- COMPONENT ---
 export default function QuestionBankManagement() {
-  const [questions] = useState(mockQuestions);
+  // Get state and functions from the context
+  const { questions, createQuestion, updateQuestion, deleteQuestion } = useAdmin();
+
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState({});
@@ -62,7 +56,14 @@ export default function QuestionBankManagement() {
       setCurrentQuestion({ ...question });
     } else {
       setIsEditing(false);
-      setCurrentQuestion({ type: 'MCQ', domain: 'Process', difficulty: 'Medium', status: 'Draft', options: ['', '', '', ''], explanation: '' });
+      setCurrentQuestion({ 
+        type: 'MCQ', 
+        domain: 'Process', 
+        difficulty: 'Medium', 
+        status: 'Draft', 
+        options: ['', '', '', ''], 
+        explanation: '' 
+      });
     }
     setIsDrawerOpen(true);
   };
@@ -78,20 +79,21 @@ export default function QuestionBankManagement() {
       case 'Easy': return "bg-green-100 text-green-700 hover:bg-green-100 border border-green-200";
       case 'Medium': return "bg-yellow-100 text-yellow-700 hover:bg-yellow-100 border border-yellow-200";
       case 'Hard': return "bg-red-100 text-red-700 hover:bg-red-100 border border-red-200";
+      default: return "bg-gray-100 text-gray-700 hover:bg-gray-100 border border-gray-200";
     }
   };
 
   const handleSave = () => {
-    // Implement save logic (add or update)
-    console.log("Saving question:", currentQuestion);
+    if (isEditing) {
+      updateQuestion(currentQuestion.id, currentQuestion);
+    } else {
+      createQuestion(currentQuestion);
+    }
     setIsDrawerOpen(false);
   };
 
-  const handleDelete = () => {
-    // Implement delete logic
-    console.log("Deleting question with ID:", currentQuestion.id);
-    // Here you would filter the questions array
-    // setQuestions(questions.filter(q => q.id !== currentQuestion.id));
+  const handleDelete = (questionId) => {
+    deleteQuestion(questionId);
     setIsDrawerOpen(false);
   };
 
@@ -195,24 +197,39 @@ export default function QuestionBankManagement() {
           <div className="flex-grow p-6 space-y-6 overflow-y-auto">
               <div>
                 <Label htmlFor="q-text" className="font-semibold">Question Text</Label>
-                <Textarea id="q-text" value={currentQuestion.text} rows={4} className="mt-2" />
+                <Textarea 
+                  id="q-text" 
+                  value={currentQuestion.text || ''} 
+                  onChange={(e) => setCurrentQuestion(prev => ({ ...prev, text: e.target.value }))} 
+                  rows={4} 
+                  className="mt-2" 
+                />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <Label htmlFor="q-type" className="font-semibold">Question Type</Label>
-                  <Select value={currentQuestion.type} onValueChange={(v) => setCurrentQuestion(p => ({...p, type: v}))}>
-                    <SelectTrigger id="q-type" className="mt-2"><SelectValue /></SelectTrigger>
+                  <Select 
+                    value={currentQuestion.type || 'MCQ'} 
+                    onValueChange={(value) => setCurrentQuestion(prev => ({ ...prev, type: value }))}
+                  >
+                    <SelectTrigger id="q-type" className="mt-2">
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="MCQ">Multiple Choice</SelectItem>
                       <SelectItem value="Hotspot">Hotspot</SelectItem>
-                      <SelectItem value="DragDrop">Drag & Drop</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
                   <Label htmlFor="q-domain" className="font-semibold">Domain</Label>
-                  <Select value={currentQuestion.domain} onValueChange={(v) => setCurrentQuestion(p => ({...p, domain: v}))}>
-                    <SelectTrigger id="q-domain" className="mt-2"><SelectValue /></SelectTrigger>
+                  <Select 
+                    value={currentQuestion.domain || 'Process'} 
+                    onValueChange={(value) => setCurrentQuestion(prev => ({ ...prev, domain: value }))}
+                  >
+                    <SelectTrigger id="q-domain" className="mt-2">
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="People">People</SelectItem>
                       <SelectItem value="Process">Process</SelectItem>
@@ -220,103 +237,111 @@ export default function QuestionBankManagement() {
                     </SelectContent>
                   </Select>
                 </div>
+                <div>
+                  <Label htmlFor="q-difficulty" className="font-semibold">Difficulty</Label>
+                  <Select 
+                    value={currentQuestion.difficulty || 'Medium'} 
+                    onValueChange={(value) => setCurrentQuestion(prev => ({ ...prev, difficulty: value }))}
+                  >
+                    <SelectTrigger id="q-difficulty" className="mt-2">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Easy">Easy</SelectItem>
+                      <SelectItem value="Medium">Medium</SelectItem>
+                      <SelectItem value="Hard">Hard</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="q-status" className="font-semibold">Status</Label>
+                  <Select 
+                    value={currentQuestion.status || 'Draft'} 
+                    onValueChange={(value) => setCurrentQuestion(prev => ({ ...prev, status: value }))}
+                  >
+                    <SelectTrigger id="q-status" className="mt-2">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Draft">Draft</SelectItem>
+                      <SelectItem value="Active">Active</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+
               {currentQuestion.type === 'MCQ' && (
                 <div>
-                  <Label className="font-semibold">Answer Options</Label>
-                  <RadioGroup value={currentQuestion.correctAnswer?.toString()} className="mt-2 space-y-3">
-                    {currentQuestion.options?.map((opt, i) => (
-                      <div key={i} className="flex items-center gap-3">
-                        <RadioGroupItem value={i.toString()} id={`opt-${i}`} />
-                        <Input id={`opt-text-${i}`} placeholder={`Option ${String.fromCharCode(65 + i)}`} value={opt} />
-                         <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive shrink-0"><Trash2 className="w-4 h-4" /></Button>
+                  <Label className="font-semibold">Options</Label>
+                  <div className="space-y-3 mt-2">
+                    {(currentQuestion.options || ['', '', '', '']).map((option, index) => (
+                      <div key={index} className="flex items-center gap-3">
+                        <RadioGroup 
+                          value={String(currentQuestion.correctAnswer || 0)} 
+                          onValueChange={(value) => setCurrentQuestion(prev => ({ ...prev, correctAnswer: parseInt(value) }))}
+                          className="flex flex-col"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value={String(index)} id={`option-${index}`} />
+                            <Label htmlFor={`option-${index}`}>Correct</Label>
+                          </div>
+                        </RadioGroup>
+                        <Input 
+                          value={option} 
+                          onChange={(e) => {
+                            const newOptions = [...(currentQuestion.options || ['', '', '', ''])];
+                            newOptions[index] = e.target.value;
+                            setCurrentQuestion(prev => ({ ...prev, options: newOptions }));
+                          }} 
+                          placeholder={`Option ${index + 1}`}
+                        />
                       </div>
                     ))}
-                  </RadioGroup>
-                   <Button variant="outline" size="sm" className="mt-3"><Plus className="w-4 h-4 mr-2" />Add Option</Button>
-                </div>
-              )}
-              {currentQuestion.type === 'Hotspot' && (
-                <div>
-                  <Label htmlFor="q-hotspot" className="font-semibold">Hotspot Image</Label>
-                  <div className="mt-2 flex justify-center items-center w-full h-48 border-2 border-dashed rounded-lg bg-muted/30">
-                    <div className="text-center text-muted-foreground">
-                      <Upload className="mx-auto h-8 w-8" />
-                      <p className="mt-2 font-medium">Click to upload or drag & drop</p>
-                      <p className="text-xs">PNG, JPG up to 5MB</p>
-                    </div>
                   </div>
                 </div>
               )}
-              <div>
-                  <Label htmlFor="q-explanation" className="font-semibold">Explanation</Label>
-                  <Textarea id="q-explanation" placeholder="Explain the correct answer and why other options are incorrect..." value={currentQuestion.explanation} rows={4} className="mt-2" />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                 <div>
-                    <Label htmlFor="q-difficulty" className="font-semibold">Difficulty</Label>
-                    <Select value={currentQuestion.difficulty} onValueChange={(v) => setCurrentQuestion(p => ({...p, difficulty: v}))}>
-                      <SelectTrigger id="q-difficulty" className="mt-2"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Easy">Easy</SelectItem>
-                        <SelectItem value="Medium">Medium</SelectItem>
-                        <SelectItem value="Hard">Hard</SelectItem>
-                      </SelectContent>
-                    </Select>
-                 </div>
-                 <div>
-                    <Label htmlFor="q-status" className="font-semibold">Status</Label>
-                    <Select value={currentQuestion.status} onValueChange={(v) => setCurrentQuestion(p => ({...p, status: v}))}>
-                      <SelectTrigger id="q-status" className="mt-2"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Active">Active</SelectItem>
-                        <SelectItem value="Draft">Draft</SelectItem>
-                      </SelectContent>
-                    </Select>
-                 </div>
-              </div>
 
-              {/* === DANGER ZONE === */}
-              {isEditing && (
-                <>
-                  <Separator className="my-4 border-destructive/20" />
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-destructive">Danger Zone</h3>
-                    <div className="flex items-start sm:items-center justify-between rounded-lg border border-destructive/30 bg-destructive/5 p-4">
-                      <div>
-                        <p className="font-bold text-foreground">Delete this Question</p>
-                        <p className="text-sm text-muted-foreground">This action is permanent and cannot be undone.</p>
-                      </div>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="destructive" className="bg-destructive/10 text-destructive hover:bg-destructive/20">Delete</Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This will permanently delete the question from the question bank. This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
-                              Yes, delete question
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </div>
-                </>
-              )}
+              <div>
+                <Label htmlFor="q-explanation" className="font-semibold">Explanation</Label>
+                <Textarea 
+                  id="q-explanation" 
+                  value={currentQuestion.explanation || ''} 
+                  onChange={(e) => setCurrentQuestion(prev => ({ ...prev, explanation: e.target.value }))} 
+                  rows={3} 
+                  className="mt-2" 
+                />
+              </div>
           </div>
 
-          <SheetFooter className="p-6 border-t bg-slate-50 dark:bg-slate-800">
-            <SheetClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </SheetClose>
-            <Button onClick={handleSave}>Save Changes</Button>
+          <SheetFooter className="p-6 border-t flex justify-between">
+            {isEditing && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" className="mr-auto">
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete the question.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => handleDelete(currentQuestion.id)}>Delete</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+            <div className="flex gap-2">
+              <SheetClose asChild>
+                <Button variant="outline">Cancel</Button>
+              </SheetClose>
+              <Button onClick={handleSave}>Save Question</Button>
+            </div>
           </SheetFooter>
         </SheetContent>
       </Sheet>

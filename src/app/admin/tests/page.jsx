@@ -13,30 +13,14 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, X, ArrowLeft, ArrowRight } from 'lucide-react';
-
-// --- MOCK DATA ---
-
-const initialTests = [
-  { id: '1', name: 'PMP Mock Exam #1', type: 'Full Exam', questionCount: 180, status: 'Active' },
-  { id: '2', name: 'Agile Practice Test', type: 'Domain Quiz', questionCount: 60, status: 'Active' },
-  { id: '3', name: 'Risk Management Quiz', type: 'Knowledge Area', questionCount: 40, status: 'Draft' },
-];
-
-const allQuestions = [
-  { id: 'q101', text: 'What is the primary purpose of a project charter?', domain: 'Process', difficulty: 'Easy' },
-  { id: 'q102', text: 'Which leadership style is most effective in a crisis?', domain: 'People', difficulty: 'Medium' },
-  { id: 'q103', text: 'Calculate the SPI if EV is $500 and PV is $600.', domain: 'Process', difficulty: 'Medium' },
-  { id: 'q104', text: 'What is the key output of the "Identify Risks" process?', domain: 'Process', difficulty: 'Hard' },
-  { id: 'q105', text: 'Describe the concept of "servant leadership" in Agile.', domain: 'Agile', difficulty: 'Easy' },
-  { id: 'q106', text: 'How does organizational culture impact project management?', domain: 'Business Environment', difficulty: 'Medium' },
-  { id: 'q107', text: 'What is the main difference between a risk and an issue?', domain: 'Process', difficulty: 'Easy' },
-  { id: 'q108', text: 'A key stakeholder is resistant to change. What is the first step?', domain: 'People', difficulty: 'Medium' },
-];
+import { useAdmin } from '@/context/admin-context'; // Import the useAdmin hook
 
 // --- COMPONENT ---
 
 export default function TestManagement() {
-  const [tests, setTests] = useState(initialTests);
+  // Get state and functions from the context
+  const { tests, questions, createTest, updateTest } = useAdmin();
+  
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
@@ -61,7 +45,7 @@ export default function TestManagement() {
     setCurrentStep(1);
     setIsConfirmed(false);
     setTestDetails({ name: test.name, count: test.questionCount, method: 'manual' });
-    setSelectedQuestions([allQuestions[0], allQuestions[2], allQuestions[5]]); // Mock selected questions for editing
+    setSelectedQuestions([questions[0], questions[2], questions[5]]); // Mock selected questions for editing
     setIsSheetOpen(true);
   };
 
@@ -79,12 +63,12 @@ export default function TestManagement() {
   };
   
   const filteredAvailableQuestions = useMemo(() => {
-    return allQuestions.filter(q => {
+    return questions.filter(q => {
       const matchesSearch = q.text.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesDomain = filterDomain === 'all' || q.domain === filterDomain;
       return matchesSearch && matchesDomain;
     });
-  }, [searchTerm, filterDomain]);
+  }, [questions, searchTerm, filterDomain]);
   
   const getDomainCount = (domain) => selectedQuestions.filter(q => q.domain === domain).length;
 
@@ -109,6 +93,23 @@ export default function TestManagement() {
         </span>
     </div>
   );
+
+  const handleSaveTest = () => {
+    if (isEditing) {
+      updateTest(testDetails.id, { 
+        ...testDetails, 
+        questionCount: selectedQuestions.length,
+        status: 'Active'
+      });
+    } else {
+      createTest({ 
+        ...testDetails, 
+        questionCount: selectedQuestions.length,
+        status: 'Active'
+      });
+    }
+    setIsSheetOpen(false);
+  };
 
   return (
     <AuthGuard allowedRoles={['admin', 'super_admin']}>
@@ -199,163 +200,211 @@ export default function TestManagement() {
                     </div>
                     <div onClick={() => setTestDetails(p => ({...p, method: 'auto'}))} className={`p-4 border-2 rounded-lg cursor-pointer ${testDetails.method === 'auto' ? 'border-primary ring-2 ring-primary' : 'border-border hover:border-primary'}`}>
                       <h4 className="font-bold">Auto-Generate</h4>
-                      <p className="text-sm text-muted-foreground">Create a balanced test instantly based on a blueprint.</p>
+                      <p className="text-sm text-muted-foreground">Let the system select questions based on domain blueprint.</p>
                     </div>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Step 2: Build */}
+            {/* Step 2: Build Test */}
             {currentStep === 2 && (
-                <>
-                {testDetails.method === 'manual' ? (
-                  <div className="grid grid-cols-1 md:grid-cols-5 h-full overflow-hidden">
-                    <div className="md:col-span-3 border-b md:border-b-0 md:border-r p-6 flex flex-col">
-                      <h3 className="font-bold text-lg mb-4">Available Questions</h3>
-                      <div className="flex gap-2 mb-4">
-                        <Input type="text" placeholder="Search questions..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="flex-grow" />
-                        <Select value={filterDomain} onValueChange={setFilterDomain}>
-                          <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="All Domains" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Domains</SelectItem>
-                            <SelectItem value="People">People</SelectItem>
-                            <SelectItem value="Process">Process</SelectItem>
-                            <SelectItem value="Business Environment">Business Env.</SelectItem>
-                            <SelectItem value="Agile">Agile</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="flex-grow overflow-y-auto space-y-2 pr-2">
-                        {filteredAvailableQuestions.map(q => (
-                          <div key={q.id} className="bg-muted p-3 rounded-lg border flex justify-between items-center">
-                            <div>
-                                <p className="text-sm font-semibold truncate max-w-xs">{q.text}</p>
-                                <div className="flex gap-2 mt-1">
-                                    <Badge variant="secondary">{q.domain}</Badge>
-                                    <Badge variant="outline">{q.difficulty}</Badge>
+              <div className="p-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* Selected Questions */}
+                  <div>
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="font-semibold text-lg">Selected Questions ({selectedQuestions.length})</h3>
+                      <Button variant="outline" size="sm" onClick={() => setSelectedQuestions([])}>Clear All</Button>
+                    </div>
+                    
+                    <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
+                      {selectedQuestions.length === 0 ? (
+                        <div className="text-center p-8 text-muted-foreground border border-dashed rounded-lg">
+                          No questions selected yet. Add questions from the pool on the right.
+                        </div>
+                      ) : (
+                        selectedQuestions.map((q) => (
+                          <Card key={q.id} className="p-4">
+                            <div className="flex justify-between">
+                              <div className="flex-1">
+                                <div className="font-medium">{q.text}</div>
+                                <div className="flex gap-2 mt-2">
+                                  <Badge variant="secondary">{q.domain}</Badge>
+                                  <Badge variant="outline">{q.difficulty}</Badge>
                                 </div>
-                            </div>
-                            <Button 
-                              onClick={() => addQuestion(q)} 
-                              disabled={selectedQuestions.some(sq => sq.id === q.id)} 
-                              size="sm"
-                              variant="outline"
-                              className="text-sm font-bold"
-                            >
-                              Add
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="md:col-span-2 p-6 flex flex-col bg-muted/30">
-                      <div className="flex justify-between items-center">
-                        <h3 className="font-bold text-lg">Test Blueprint</h3>
-                        <p className="font-semibold text-lg">{`${selectedQuestions.length} / ${testDetails.count}`}</p>
-                      </div>
-                      <div className="space-y-3 mt-4">
-                          <h4 className="text-sm font-semibold mb-2">Domain Breakdown</h4>
-                          {domainBlueprint.map(d => (
-                              <div key={d.name}>
-                                  <div className="flex justify-between text-xs mb-1">
-                                      <span>{d.name}</span>
-                                      <span>{`${getDomainCount(d.name)} / ${d.target}`}</span>
-                                  </div>
-                                  <Progress value={(getDomainCount(d.name) / d.target) * 100} className="h-1.5" />
                               </div>
-                          ))}
-                      </div>
-                      <div className="flex-grow overflow-y-auto space-y-2 mt-4 border-t pt-4">
-                        {selectedQuestions.map(q => (
-                          <div key={q.id} className="bg-white p-2 rounded-lg border flex justify-between items-center cursor-grab">
-                            <p className="text-sm font-semibold truncate max-w-[200px]">{q.text}</p>
-                            <Button onClick={() => removeQuestion(q.id)} variant="ghost" size="icon" className="h-6 w-6 text-red-500 hover:bg-red-500/10">
-                              <X className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
+                              <Button variant="ghost" size="sm" onClick={() => removeQuestion(q.id)}>
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </Card>
+                        ))
+                      )}
                     </div>
                   </div>
-                ) : (
-                  <div className="p-8 space-y-8">
-                      <div>
-                          <h3 className="font-semibold text-lg">Define Test Blueprint</h3>
-                          <p className="text-sm text-muted-foreground">The system will generate a test by randomly selecting questions that match these rules.</p>
-                      </div>
-                      <div className="space-y-4">
-                          <h4 className="font-bold">Domain Percentages</h4>
-                          <div><Label>People (42%)</Label><Input type="range" defaultValue="42" className="w-full mt-1" /></div>
-                          <div><Label>Process (50%)</Label><Input type="range" defaultValue="50" className="w-full mt-1" /></div>
-                          <div><Label>Business Environment (8%)</Label><Input type="range" defaultValue="8" className="w-full mt-1" /></div>
-                      </div>
-                      <div className="space-y-4">
-                          <h4 className="font-bold">Difficulty Mix</h4>
-                          <div><Label>Easy (25%)</Label><Input type="range" defaultValue="25" className="w-full mt-1" /></div>
-                          <div><Label>Medium (50%)</Label><Input type="range" defaultValue="50" className="w-full mt-1" /></div>
-                          <div><Label>Hard (25%)</Label><Input type="range" defaultValue="25" className="w-full mt-1" /></div>
-                      </div>
+                  
+                  {/* Question Pool */}
+                  <div>
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="font-semibold text-lg">Question Pool</h3>
+                      <div className="text-sm text-muted-foreground">{filteredAvailableQuestions.length} available</div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <Input 
+                        placeholder="Search questions..." 
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                      <Select value={filterDomain} onValueChange={setFilterDomain}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Filter by domain" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Domains</SelectItem>
+                          <SelectItem value="People">People</SelectItem>
+                          <SelectItem value="Process">Process</SelectItem>
+                          <SelectItem value="Business Environment">Business Environment</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
+                      {filteredAvailableQuestions.map((q) => (
+                        <Card 
+                          key={q.id} 
+                          className={`p-4 cursor-pointer hover:border-primary ${selectedQuestions.some(sq => sq.id === q.id) ? 'border-primary ring-1 ring-primary' : ''}`}
+                          onClick={() => addQuestion(q)}
+                        >
+                          <div className="flex items-start gap-3">
+                            <Checkbox 
+                              checked={selectedQuestions.some(sq => sq.id === q.id)} 
+                              className="mt-0.5"
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            <div className="flex-1">
+                              <div className="font-medium">{q.text}</div>
+                              <div className="flex gap-2 mt-2">
+                                <Badge variant="secondary">{q.domain}</Badge>
+                                <Badge variant="outline">{q.difficulty}</Badge>
+                              </div>
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
                   </div>
-                )}
-                </>
+                </div>
+              </div>
             )}
 
-            {/* Step 3: Review */}
+            {/* Step 3: Review & Publish */}
             {currentStep === 3 && (
-              <div className="p-8">
-                  <h3 className="text-xl font-bold mb-4">Review & Publish</h3>
-                  <div className="bg-muted p-6 rounded-lg border space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                          <div><p className="text-sm text-muted-foreground">Test Name</p><p className="font-semibold">{testDetails.name || "Untitled Test"}</p></div>
-                          <div><p className="text-sm text-muted-foreground">Question Count</p><p className="font-semibold">{selectedQuestions.length} Questions</p></div>
+              <div className="p-8 space-y-8">
+                <div>
+                  <h3 className="font-semibold text-lg mb-4">Test Summary</h3>
+                  <Card className="p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div>
+                        <Label className="text-muted-foreground">Test Name</Label>
+                        <div className="font-medium mt-1">{testDetails.name}</div>
                       </div>
                       <div>
-                          <p className="text-sm text-muted-foreground mb-2">Final Blueprint Analysis</p>
-                          <div className="space-y-2">
-                              {domainBlueprint.map(d => (
-                                  <div key={d.name}>
-                                      <div className="flex justify-between text-xs mb-1">
-                                          <span className="font-medium">{d.name}</span>
-                                          <span>{`${getDomainCount(d.name)} questions (${selectedQuestions.length > 0 ? ((getDomainCount(d.name)/selectedQuestions.length)*100).toFixed(0) : 0}%)`}</span>
-                                      </div>
-                                      <Progress value={selectedQuestions.length > 0 ? (getDomainCount(d.name) / selectedQuestions.length) * 100 : 0} className="h-2" />
-                                  </div>
-                              ))}
-                          </div>
+                        <Label className="text-muted-foreground">Question Count</Label>
+                        <div className="font-medium mt-1">{selectedQuestions.length}</div>
                       </div>
+                      <div>
+                        <Label className="text-muted-foreground">Creation Method</Label>
+                        <div className="font-medium mt-1 capitalize">{testDetails.method}</div>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+                
+                <div>
+                  <h3 className="font-semibold text-lg mb-4">Domain Distribution</h3>
+                  <Card className="p-6">
+                    <div className="space-y-4">
+                      {domainBlueprint.map((domain) => {
+                        const actualCount = getDomainCount(domain.name);
+                        const percentage = domain.target > 0 ? Math.round((actualCount / domain.target) * 100) : 0;
+                        return (
+                          <div key={domain.name}>
+                            <div className="flex justify-between mb-1">
+                              <span className="font-medium">{domain.name}</span>
+                              <span className="text-muted-foreground">{actualCount}/{domain.target} ({percentage}%)</span>
+                            </div>
+                            <Progress value={Math.min(percentage, 100)} className="h-2" />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </Card>
+                </div>
+                
+                <div>
+                  <h3 className="font-semibold text-lg mb-4">Selected Questions</h3>
+                  <div className="border rounded-lg overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Question</TableHead>
+                          <TableHead>Domain</TableHead>
+                          <TableHead>Difficulty</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {selectedQuestions.map((q) => (
+                          <TableRow key={q.id}>
+                            <TableCell className="font-medium max-w-md truncate">{q.text}</TableCell>
+                            <TableCell><Badge variant="secondary">{q.domain}</Badge></TableCell>
+                            <TableCell><Badge variant="outline">{q.difficulty}</Badge></TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                   </div>
-                  <div className="mt-6 flex items-center space-x-3">
-                      <Checkbox id="confirm" checked={isConfirmed} onCheckedChange={(checked) => setIsConfirmed(checked)} />
-                      <Label htmlFor="confirm" className="text-sm">I have reviewed the test and confirm it is ready for publishing.</Label>
+                </div>
+                
+                <div className="flex items-center p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-yellow-800">Confirm Test Creation</h4>
+                    <p className="text-sm text-yellow-700">Please review all details before publishing. Once published, the test will be available to users.</p>
                   </div>
-                  {testDetails.method === 'auto' && <Button variant="link" className="mt-4 px-0">Re-generate Questions</Button>}
+                  <Checkbox 
+                    id="confirm-publish" 
+                    checked={isConfirmed}
+                    onCheckedChange={setIsConfirmed}
+                  />
+                  <Label htmlFor="confirm-publish" className="ml-2 text-yellow-800">I confirm all details are correct</Label>
+                </div>
               </div>
             )}
           </div>
           
-          <div className="p-4 border-t bg-background flex justify-between items-center flex-shrink-0">
-            {currentStep > 1 ? (
-              <Button variant="ghost" onClick={prevStep}>
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
-              </Button>
-            ) : <div></div>}
-            
-            <div className="flex gap-4">
+          {/* Sheet Footer with Navigation */}
+          <div className="p-6 border-t flex justify-between">
+            <div>
+              {currentStep > 1 && (
+                <Button variant="outline" onClick={prevStep} className="mr-2">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Previous
+                </Button>
+              )}
+            </div>
+            <div>
               {currentStep < 3 ? (
-                <Button onClick={nextStep}>
+                <Button onClick={nextStep} disabled={currentStep === 1 && !testDetails.name}>
                   Next
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               ) : (
                 <Button 
-                    disabled={!isConfirmed} 
-                    className="bg-green-600 hover:bg-green-700"
+                  onClick={handleSaveTest}
+                  disabled={!isConfirmed}
                 >
-                  Publish Test
+                  {isEditing ? 'Update Test' : 'Publish Test'}
                 </Button>
               )}
             </div>
