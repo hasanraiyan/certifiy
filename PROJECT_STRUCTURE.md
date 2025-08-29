@@ -15,11 +15,11 @@ These pages are accessible without authentication:
 
 1. **Homepage** (`/`)
    - File: `src/app/page.tsx`
-   - Features: Landing page, testimonials, pricing CTA
+   - Features: Landing page, testimonials, featured tests CTA
 
-2. **Pricing & Plans** (`/pricing`)
-   - File: `src/app/pricing/page.tsx`
-   - Features: Plan comparison, feature lists, pricing tiers
+2. **Test Library** (`/tests`)
+   - File: `src/app/tests/page.tsx`
+   - Features: Product catalog, search, filtering
 
 3. **Login** (`/login`)
    - File: `src/app/login/page.tsx`
@@ -64,7 +64,7 @@ These pages require student authentication:
 11. **Profile & Settings** (`/profile`)
     - File: `src/app/profile/page.tsx`
     - Access: `student` role
-    - Features: Profile management, password change, subscription details
+    - Features: Profile management, password change, purchase history
 
 ### Part 3: Admin Panel Pages (7 Pages)
 These pages require admin-level access:
@@ -84,10 +84,10 @@ These pages require admin-level access:
     - Access: `admin`, `super_admin`
     - Features: Test structure creation, question assembly
 
-15. **Product & Plan Management** (`/admin/plans`)
-    - File: `src/app/admin/plans/page.tsx`
+15. **Product Management** (`/admin/products`)
+    - File: `src/app/admin/products/page.tsx`
     - Access: `admin`, `super_admin`
-    - Features: Pricing plan creation, feature management, test inclusion
+    - Features: Product and bundle creation, feature management, pricing
 
 16. **Student Management** (`/admin/users`)
     - File: `src/app/admin/users/page.tsx`
@@ -124,9 +124,15 @@ These pages require admin-level access:
 ### Admin Functionality
 - Content management (questions, tests)
 - User management and analytics
-- Pricing and plan configuration
+- Product and bundle configuration
 - Team management (Super Admin only)
 - Comprehensive reporting and analytics
+
+### E-Commerce Features
+- Product catalog with search and filtering
+- Shopping cart with optimistic UI updates
+- Checkout flow with purchase simulation
+- Ownership-based content access control
 
 ### UI Components
 All pages use consistent UI components from `src/components/ui/`:
@@ -156,7 +162,7 @@ All pages include comprehensive mock data to demonstrate functionality:
 src/
 ├── app/
 │   ├── page.tsx (Homepage)
-│   ├── pricing/page.tsx
+│   ├── tests/page.tsx
 │   ├── login/page.tsx
 │   ├── signup/page.tsx
 │   ├── reset-password/page.tsx
@@ -171,7 +177,7 @@ src/
 │   │   ├── dashboard/page.tsx
 │   │   ├── questions/page.tsx
 │   │   ├── tests/page.tsx
-│   │   ├── plans/page.tsx
+│   │   ├── products/page.tsx
 │   │   ├── users/page.tsx
 │   │   ├── team/page.tsx
 │   │   └── reports/page.tsx

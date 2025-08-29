@@ -17,8 +17,8 @@ import {
 const activityFeed = [
   {
     id: 1,
-    type: 'subscription',
-    title: 'New Subscription',
+    type: 'purchase',
+    title: 'New Purchase',
     description: 'Full Access by j.doe@... • 2m ago',
     icon: <CreditCard className="w-5 h-5" />,
     color: 'bg-green-500/10 text-green-500'
@@ -48,8 +48,8 @@ const topTests = [
 ];
 
 const newestStudents = [
-  { name: 'Sarah Wong', initials: 'SW', plan: 'Full Access', time: '5m ago' },
-  { name: 'John Doe', initials: 'JD', plan: 'Free Plan', time: '2h ago' }
+  { name: 'Sarah Wong', initials: 'SW', time: '5m ago' },
+  { name: 'John Doe', initials: 'JD', time: '2h ago' }
 ];
 
 const platformStatus = [
@@ -61,7 +61,7 @@ const platformStatus = [
 const quickActions = [
   { name: 'Add New Question', href: '/admin/questions', icon: <Plus className="w-5 h-5" /> },
   { name: 'Create New Test', href: '/admin/tests', icon: <FileText className="w-5 h-5" /> },
-  { name: 'Manage Plans', href: '/admin/plans', icon: <CreditCard className="w-5 h-5" /> },
+  { name: 'Manage Products', href: '/admin/products', icon: <CreditCard className="w-5 h-5" /> },
   { name: 'View All Students', href: '/admin/users', icon: <Users className="w-5 h-5" /> }
 ];
 
@@ -189,13 +189,13 @@ export default function AdminDashboard() {
             <Card>
               <CardContent className="p-6">
                 <div className="flex justify-between items-start">
-                  <h3 className="text-sm font-medium text-muted-foreground">Active Subscriptions</h3>
-                  <div className="flex items-center gap-1 text-xs text-red-500 font-semibold">
-                    <TrendingDown className="w-3 h-3" />
-                    -0.6%
+                  <h3 className="text-sm font-medium text-muted-foreground">Active Users</h3>
+                  <div className="flex items-center gap-1 text-xs text-green-500 font-semibold">
+                    <TrendingUp className="w-3 h-3" />
+                    +2.3%
                   </div>
                 </div>
-                <p className="mt-2 text-3xl font-bold text-foreground">892</p>
+                <p className="mt-2 text-3xl font-bold text-foreground">1,247</p>
                 <div className="h-8 mt-2 opacity-50">
                   <svg viewBox="0 0 100 25" className="w-full h-full">
                     <polyline 
@@ -291,7 +291,7 @@ export default function AdminDashboard() {
                     <div>
                       <p className="text-sm font-semibold">{student.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {student.plan} • {student.time}
+                        {student.time}
                       </p>
                     </div>
                   </div>

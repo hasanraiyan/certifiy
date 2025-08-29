@@ -1,0 +1,18 @@
+[
+  {
+    "id": "purchase_1",
+    "userId": "user_1",
+    "productId": "prod_1",
+    "purchaseDate": "2025-01-15T10:30:00.000Z",
+    "amount": { "amount": 15, "currency": "USD" },
+    "status": "Completed"
+  },
+  {
+    "id": "purchase_2",
+    "userId": "user_1",
+    "bundleId": "bundle_1",
+    "purchaseDate": "2025-01-20T14:45:00.000Z",
+    "amount": { "amount": 40, "currency": "USD" },
+    "status": "Completed"
+  }
+]

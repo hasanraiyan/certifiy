@@ -14,9 +14,14 @@ export function HeroSection() {
             Go beyond memorization. Our adaptive practice exams pinpoint your weaknesses and create a focused study plan, so you pass with confidence.
           </p>
           <div className="mt-8 flex justify-center md:justify-start">
-            <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold py-6 px-10 text-lg shadow-lg shadow-accent/30 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1">
-              <Link href="/signup">Start Your First Free Test</Link>
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+              <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold py-6 px-10 text-lg shadow-lg shadow-accent/30 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1">
+                <Link href="/signup">Start Your First Free Test</Link>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="font-bold py-6 px-10 text-lg transition-all duration-300">
+                <Link href="/tests">Browse Test Library</Link>
+              </Button>
+            </div>
           </div>
         </div>
 

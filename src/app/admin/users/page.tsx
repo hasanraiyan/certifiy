@@ -21,19 +21,19 @@ interface Student {
   id: number;
   name: string;
   email: string;
-  plan: 'Free' | 'Full Access';
   status: 'Active' | 'Suspended';
   ltv: number;
   lastActive: string;
   joinDate: string;
+  purchases: number;
 }
 
 const mockStudents: Student[] = [
-  { id: 1, name: 'John Student', email: 'student@example.com', plan: 'Full Access', status: 'Active', ltv: 279.00, lastActive: '2h ago', joinDate: '3 months ago' },
-  { id: 2, name: 'Sarah Wilson', email: 'sarah.wilson@example.com', plan: 'Free', status: 'Active', ltv: 0.00, lastActive: '1d ago', joinDate: '1 month ago' },
-  { id: 3, name: 'Michael Chen', email: 'michael.chen@example.com', plan: 'Full Access', status: 'Suspended', ltv: 49.00, lastActive: '3w ago', joinDate: '6 months ago' },
-  { id: 4, name: 'Emily Rodriguez', email: 'emily.r@example.com', plan: 'Full Access', status: 'Active', ltv: 279.00, lastActive: '5h ago', joinDate: '2 weeks ago' },
-  { id: 5, name: 'David Lee', email: 'david.lee@example.com', plan: 'Free', status: 'Active', ltv: 0.00, lastActive: '2d ago', joinDate: '1 week ago' },
+  { id: 1, name: 'John Student', email: 'student@example.com', status: 'Active', ltv: 279.00, lastActive: '2h ago', joinDate: '3 months ago', purchases: 3 },
+  { id: 2, name: 'Sarah Wilson', email: 'sarah.wilson@example.com', status: 'Active', ltv: 0.00, lastActive: '1d ago', joinDate: '1 month ago', purchases: 0 },
+  { id: 3, name: 'Michael Chen', email: 'michael.chen@example.com', status: 'Suspended', ltv: 49.00, lastActive: '3w ago', joinDate: '6 months ago', purchases: 1 },
+  { id: 4, name: 'Emily Rodriguez', email: 'emily.r@example.com', status: 'Active', ltv: 279.00, lastActive: '5h ago', joinDate: '2 weeks ago', purchases: 2 },
+  { id: 5, name: 'David Lee', email: 'david.lee@example.com', status: 'Active', ltv: 0.00, lastActive: '2d ago', joinDate: '1 week ago', purchases: 0 },
 ];
 
 const activityFeed = [
@@ -42,11 +42,6 @@ const activityFeed = [
     { date: 'Jan 8, 11:00am', action: 'Completed', details: 'Agile Practice Test (Score: 75%)' },
 ];
 
-const plans = [
-    'Free',
-    'Full Access'
-]
-
 // --- COMPONENT ---
 export default function StudentManagementPage() {
     const [students] = useState<Student[]>(mockStudents);
@@ -54,7 +49,7 @@ export default function StudentManagementPage() {
     const [isCreatingNewUser, setIsCreatingNewUser] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-    const [newUser, setNewUser] = useState({ name: '', email: '', plan: 'Free' as 'Free' | 'Full Access' });
+    const [newUser, setNewUser] = useState({ name: '', email: '' });
 
     const filteredStudents = useMemo(() => {
         if (!searchTerm) return students;
@@ -67,7 +62,7 @@ export default function StudentManagementPage() {
     const openCreateDrawer = () => {
         setIsCreatingNewUser(true);
         setSelectedStudent(null);
-        setNewUser({ name: '', email: '', plan: 'Free' });
+        setNewUser({ name: '', email: '' });
         setIsDrawerOpen(true);
     };
 
@@ -82,10 +77,6 @@ export default function StudentManagementPage() {
     }
     
     const getInitials = (name: string) => name.match(/\b(\w)/g)?.join('').toUpperCase() || '';
-
-    const getPlanBadgeVariant = (plan: Student['plan']) => {
-        return plan === 'Free' ? 'secondary' : 'default';
-    }
 
     const getStatusBadgeVariant = (status: Student['status']) => {
         return status === 'Active' ? 'default' : 'destructive';
@@ -112,8 +103,8 @@ export default function StudentManagementPage() {
                     <CardContent><p className="text-3xl font-bold">{students.length}</p></CardContent>
                 </Card>
                 <Card>
-                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Active Subscribers</CardTitle></CardHeader>
-                    <CardContent><p className="text-3xl font-bold">{students.filter(s => s.plan !== 'Free').length}</p></CardContent>
+                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Active Purchasers</CardTitle></CardHeader>
+                    <CardContent><p className="text-3xl font-bold">{students.filter(s => s.purchases > 0).length}</p></CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">New This Month</CardTitle></CardHeader>
@@ -141,7 +132,7 @@ export default function StudentManagementPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Student</TableHead>
-                                <TableHead>Plan</TableHead>
+                                <TableHead>Purchases</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead>LTV</TableHead>
                                 <TableHead>Last Active</TableHead>
@@ -158,7 +149,7 @@ export default function StudentManagementPage() {
                                             <div className="text-xs text-muted-foreground">{student.email}</div>
                                         </div>
                                     </TableCell>
-                                    <TableCell><Badge variant={getPlanBadgeVariant(student.plan)}>{student.plan}</Badge></TableCell>
+                                    <TableCell className="font-medium">{student.purchases}</TableCell>
                                     <TableCell><Badge variant={getStatusBadgeVariant(student.status)}>{student.status}</Badge></TableCell>
                                     <TableCell className="font-medium">${student.ltv.toFixed(2)}</TableCell>
                                     <TableCell className="text-muted-foreground">{student.lastActive}</TableCell>
@@ -218,15 +209,10 @@ export default function StudentManagementPage() {
                                     <CardHeader><CardTitle>Manage Account</CardTitle></CardHeader>
                                     <CardContent className="space-y-4">
                                         <div>
-                                            <Label htmlFor="plan" className="font-medium text-sm">Change Plan</Label>
-                                            <Select defaultValue={selectedStudent.plan}>
-                                                <SelectTrigger id="plan" className="w-full mt-1 bg-white">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {plans.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
-                                                </SelectContent>
-                                            </Select>
+                                            <Label className="font-medium text-sm">Purchases</Label>
+                                            <div className="mt-1 text-sm">
+                                                <p>{selectedStudent.purchases} purchases</p>
+                                            </div>
                                         </div>
                                         <div>
                                             <Label className="font-medium text-sm">Admin Notes</Label>
@@ -247,15 +233,6 @@ export default function StudentManagementPage() {
                             <div className="flex-grow p-8 space-y-6 overflow-y-auto">
                                 <div><Label htmlFor="newName" className="font-medium text-sm">Full Name</Label><Input type="text" id="newName" value={newUser.name} onChange={e => setNewUser({...newUser, name: e.target.value})} className="w-full mt-1" placeholder="John Doe" /></div>
                                 <div><Label htmlFor="newEmail" className="font-medium text-sm">Email Address</Label><Input type="email" id="newEmail" value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})} className="w-full mt-1" placeholder="john.doe@example.com" /></div>
-                                <div>
-                                    <Label htmlFor="newPlan" className="font-medium text-sm">Assign Plan</Label>
-                                    <Select value={newUser.plan} onValueChange={(value: 'Free' | 'Full Access') => setNewUser({...newUser, plan: value})}>
-                                        <SelectTrigger id="newPlan" className="w-full mt-1 bg-white"><SelectValue /></SelectTrigger>
-                                        <SelectContent>
-                                            {plans.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
                                 <div className="flex items-center gap-3"><Checkbox id="sendInvite" /><Label htmlFor="sendInvite" className="text-sm">Send welcome email with password setup link</Label></div>
                             </div>
                             <SheetFooter className="bg-white p-4 border-t border-border flex-shrink-0 flex justify-end gap-4">

@@ -7,7 +7,7 @@ const faqs = [
   {
     id: 'faq1',
     question: 'Is this a one-time payment or a subscription?',
-    answer: 'The "Pay Per Test" and the yearly "Full Access" plans are one-time payments. The monthly "Full Access" is a recurring subscription that you can cancel at any time from your profile.'
+    answer: 'All our products are one-time purchases. There are no recurring subscriptions. You can purchase individual tests or bundles as needed.'
   },
   {
     id: 'faq2',
@@ -17,7 +17,7 @@ const faqs = [
   {
     id: 'faq3',
     question: 'Can I get a refund if I\'m not satisfied?',
-    answer: 'Yes, we offer a 14-day money-back guarantee on our "Full Access" plans. If you\'re not satisfied, just contact support within 14 days of purchase for a full refund.'
+    answer: 'Yes, we offer a 14-day money-back guarantee on all purchases. If you\'re not satisfied, just contact support within 14 days of purchase for a full refund.'
   }
 ];
 

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { CheckCircle, Menu } from 'lucide-react';
+import { CartIcon } from '@/components/cart/cart-icon';
 
 export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -21,11 +22,12 @@ export function Header() {
         {/* Desktop Links */}
         <div className="hidden md:flex items-center space-x-8 text-sm font-semibold text-foreground">
           <Link href="#features" className="hover:text-accent transition-colors">Features</Link>
-          <Link href="/pricing" className="hover:text-accent transition-colors">Pricing</Link>
+          <Link href="/tests" className="hover:text-accent transition-colors">Test Library</Link>
           <Link href="/login" className="hover:text-accent transition-colors">Login</Link>
           <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-sm">
             <Link href="/signup">Start Free Test</Link>
           </Button>
+          <CartIcon />
         </div>
 
         {/* Mobile Menu */}
@@ -46,11 +48,11 @@ export function Header() {
                   Features
                 </Link>
                 <Link 
-                  href="#pricing" 
+                  href="/tests" 
                   className="text-lg font-medium hover:text-accent transition-colors py-2"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  Pricing
+                  Test Library
                 </Link>
                 <Link 
                   href="/login" 
@@ -58,6 +60,13 @@ export function Header() {
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Login
+                </Link>
+                <Link 
+                  href="/cart" 
+                  className="text-lg font-medium hover:text-accent transition-colors py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Cart
                 </Link>
                 <div className="pt-4">
                   <Button asChild className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold">

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { CartProvider } from "@/context/cart-context";
 // Development components (commented out for production)
 import { DevAuthPanel } from "@/components/dev/dev-auth-panel";
 import { DevStatusBar } from "@/components/dev/dev-status-bar";
@@ -24,9 +25,11 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body className={cn("min-h-screen bg-white font-sans text-foreground antialiased", inter.variable)}>
-        <DevStatusBar />
-        {children}
-        <DevAuthPanel />
+        <CartProvider>
+          <DevStatusBar />
+          {children}
+          <DevAuthPanel />
+        </CartProvider>
       </body>
     </html>
   );

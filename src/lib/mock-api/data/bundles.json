@@ -1,0 +1,30 @@
+[
+  {
+    "id": "bundle_1",
+    "name": "Exam Readiness Pack",
+    "slug": "exam-readiness",
+    "price": { "amount": 40, "currency": "USD" },
+    "description": "Three of our most realistic full-length mock exams bundled for a complete final review.",
+    "productIds": ["prod_1", "prod_3", "prod_4"],
+    "status": "Active",
+    "discountPercentage": 10,
+    "isFeatured": true,
+    "publishedAt": "2025-01-25T00:00:00.000Z",
+    "createdAt": "2025-01-20T00:00:00.000Z",
+    "updatedAt": "2025-01-25T00:00:00.000Z"
+  },
+  {
+    "id": "bundle_2",
+    "name": "Agile Specialist Bundle",
+    "slug": "agile-specialist",
+    "price": { "amount": 20, "currency": "USD" },
+    "description": "Perfect for focusing on Agile practices with our specialized quizzes and exams.",
+    "productIds": ["prod_2", "prod_4"],
+    "status": "Active",
+    "discountPercentage": 15,
+    "isFeatured": false,
+    "publishedAt": "2025-02-10T00:00:00.000Z",
+    "createdAt": "2025-02-05T00:00:00.000Z",
+    "updatedAt": "2025-02-10T00:00:00.000Z"
+  }
+]

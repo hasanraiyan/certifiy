@@ -46,7 +46,7 @@ export default function AdminUserManagement() {
       joinDate: '2024-03-20',
       lastActive: '2025-01-14',
       status: 'active',
-      permissions: ['manage_users', 'manage_plans', 'view_reports', 'manage_tests']
+      permissions: ['manage_users', 'manage_products', 'view_reports', 'manage_tests']
     },
     {
       id: '3',
@@ -79,7 +79,7 @@ export default function AdminUserManagement() {
 
   const rolePermissions = {
     content_manager: ['manage_questions', 'manage_tests'],
-    admin: ['manage_users', 'manage_plans', 'view_reports', 'manage_tests', 'manage_questions'],
+    admin: ['manage_users', 'manage_products', 'view_reports', 'manage_tests', 'manage_questions'],
     super_admin: ['all']
   };
 
@@ -88,7 +88,7 @@ export default function AdminUserManagement() {
   //   'manage_questions',
   //   'manage_tests', 
   //   'manage_users',
-  //   'manage_plans',
+  //   'manage_products',
   //   'view_reports',
   //   'manage_team'
   // ];
@@ -404,7 +404,7 @@ export default function AdminUserManagement() {
                     <h4 className="font-medium text-yellow-800 mb-2">Role Descriptions:</h4>
                     <ul className="text-sm text-yellow-700 space-y-1">
                       <li><strong>Content Manager:</strong> Can manage questions and tests</li>
-                      <li><strong>Admin:</strong> Can manage users, plans, and view reports</li>
+                      <li><strong>Admin:</strong> Can manage users, products, and view reports</li>
                       <li><strong>Super Admin:</strong> Full access to all features including team management</li>
                     </ul>
                   </div>

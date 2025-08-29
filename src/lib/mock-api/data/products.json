@@ -1,0 +1,58 @@
+[
+  {
+    "id": "prod_1",
+    "name": "PMP® Mock Exam #1",
+    "slug": "pmp-mock-exam-1",
+    "price": { "amount": 15, "currency": "USD" },
+    "description": "A 180-question, full-length simulation of the real PMP exam experience.",
+    "type": "Exam",
+    "questionIds": ["q1", "q2", "q3"],
+    "status": "Active",
+    "isFeatured": true,
+    "publishedAt": "2025-01-15T00:00:00.000Z",
+    "createdAt": "2025-01-10T00:00:00.000Z",
+    "updatedAt": "2025-01-15T00:00:00.000Z"
+  },
+  {
+    "id": "prod_2",
+    "name": "Agile Practice Quiz",
+    "slug": "agile-practice-quiz",
+    "price": { "amount": 7, "currency": "USD" },
+    "description": "A 50-question deep dive focused specifically on Agile and Hybrid concepts.",
+    "type": "DomainQuiz",
+    "questionIds": ["q4", "q5"],
+    "status": "Active",
+    "isFeatured": true,
+    "publishedAt": "2025-01-20T00:00:00.000Z",
+    "createdAt": "2025-01-18T00:00:00.000Z",
+    "updatedAt": "2025-01-20T00:00:00.000Z"
+  },
+  {
+    "id": "prod_3",
+    "name": "PMP® Mock Exam #2",
+    "slug": "pmp-mock-exam-2",
+    "price": { "amount": 15, "currency": "USD" },
+    "description": "Second full-length PMP exam simulation with updated questions.",
+    "type": "Exam",
+    "questionIds": ["q6", "q7", "q8"],
+    "status": "Active",
+    "isFeatured": false,
+    "publishedAt": "2025-02-01T00:00:00.000Z",
+    "createdAt": "2025-01-25T00:00:00.000Z",
+    "updatedAt": "2025-02-01T00:00:00.000Z"
+  },
+  {
+    "id": "prod_4",
+    "name": "Foundations Practice Test",
+    "slug": "foundations-practice-test",
+    "price": { "amount": 10, "currency": "USD" },
+    "description": "Test your knowledge of PMP foundations and framework concepts.",
+    "type": "Quiz",
+    "questionIds": ["q9", "q10"],
+    "status": "Active",
+    "isFeatured": false,
+    "publishedAt": "2025-02-05T00:00:00.000Z",
+    "createdAt": "2025-02-01T00:00:00.000Z",
+    "updatedAt": "2025-02-05T00:00:00.000Z"
+  }
+]

@@ -33,8 +33,8 @@ const navigation = [
     icon: <ClipboardList className="w-5 h-5" />
   },
   { 
-    name: 'Plans', 
-    href: '/admin/plans', 
+    name: 'Products', 
+    href: '/admin/products', 
     icon: <CreditCard className="w-5 h-5" />
   },
   { 

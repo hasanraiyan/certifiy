@@ -66,3 +66,37 @@ export const isSuperAdmin = (user: User | null): boolean => {
 export const canManageContent = (user: User | null): boolean => {
   return hasRole(user, ['content_manager', 'admin', 'super_admin']);
 };
+
+// Ownership-based access control helpers for e-commerce model
+export const hasPurchasedProduct = async (user: User | null, productId: string): Promise<boolean> => {
+  if (!user) return false;
+  
+  try {
+    // Import dynamically to avoid circular dependencies
+    const { isProductPurchased, isProductInPurchasedBundle } = await import('@/lib/mock-api/purchases');
+    
+    // Check if user directly purchased the product
+    const directlyPurchased = await isProductPurchased(user.id, productId);
+    
+    // Check if user purchased a bundle that contains this product
+    const inBundle = await isProductInPurchasedBundle(user.id, productId);
+    
+    return directlyPurchased || inBundle;
+  } catch (error) {
+    console.error('Failed to check product purchase status:', error);
+    return false;
+  }
+};
+
+export const hasPurchasedBundle = async (user: User | null, bundleId: string): Promise<boolean> => {
+  if (!user) return false;
+  
+  try {
+    // Import dynamically to avoid circular dependencies
+    const { isBundlePurchased } = await import('@/lib/mock-api/purchases');
+    return await isBundlePurchased(user.id, bundleId);
+  } catch (error) {
+    console.error('Failed to check bundle purchase status:', error);
+    return false;
+  }
+};

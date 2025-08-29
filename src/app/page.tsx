@@ -2,7 +2,7 @@ import { Header } from '@/components/landing/header';
 import { HeroSection } from '@/components/landing/hero-section';
 import { HowItWorksSection } from '@/components/landing/how-it-works-section';
 import { FeaturesSection } from '@/components/landing/features-section';
-import { PricingSection } from '@/components/landing/pricing-section';
+import { FeaturedTests } from '@/components/landing/featured-tests';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
@@ -17,7 +17,7 @@ export default function HomePage() {
 
         <FeaturesSection />
 
-        <PricingSection />
+        <FeaturedTests />
 
         {/* Final CTA Banner */}
         <section className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground">
