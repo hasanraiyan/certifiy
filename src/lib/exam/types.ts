@@ -76,8 +76,24 @@ export interface ExamSession {
 }
 
 /**
+ * Serializable version of ExamSession that can be stored/transmitted as JSON
+ */
+export interface SerializableExamSession {
+  id: string;
+  userId: string;
+  examConfig: ExamConfig;
+  startTime: string;
+  endTime?: string;
+  currentQuestionIndex: number;
+  answers: [number, Answer][];
+  bookmarkedQuestions: number[];
+  status: ExamStatus;
+}
+
+/**
  * Domain score interface
  */
+
 export interface DomainScore {
   domain: string;
   totalQuestions: number;
@@ -148,6 +164,58 @@ export function validateExamResults(data: QuestionResult[]): ValidationError[] {
     if (!result.questionId) errors.push({ message: `Missing question ID at index ${index}`, field: `results[${index}].questionId` });
     if (result.correct === undefined) errors.push({ message: `Missing correct flag at index ${index}`, field: `results[${index}].correct` });
   });
+  return errors;
+}
+
+/**
+ * Serialize an ExamSession into a JSON-friendly format
+ */
+export function serializeExamSession(session: ExamSession): SerializableExamSession {
+  return {
+    id: session.id,
+    userId: session.userId,
+    examConfig: session.examConfig,
+    startTime: session.startTime.toISOString(),
+    endTime: session.endTime?.toISOString(),
+    currentQuestionIndex: session.currentQuestionIndex,
+    answers: Array.from(session.answers.entries()),
+    bookmarkedQuestions: Array.from(session.bookmarkedQuestions),
+    status: session.status
+  };
+}
+
+/**
+ * Deserialize a SerializableExamSession back into an ExamSession
+ */
+export function deserializeExamSession(data: SerializableExamSession): ExamSession {
+  return {
+    id: data.id,
+    userId: data.userId,
+    examConfig: data.examConfig,
+    startTime: new Date(data.startTime),
+    endTime: data.endTime ? new Date(data.endTime) : undefined,
+    currentQuestionIndex: data.currentQuestionIndex,
+    answers: new Map(data.answers),
+    bookmarkedQuestions: new Set(data.bookmarkedQuestions),
+    status: data.status
+  };
+}
+
+/**
+ * Validate the integrity of a recovered session
+ */
+export function validateSessionIntegrity(session: ExamSession): ValidationError[] {
+  const errors: ValidationError[] = [];
+  
+  if (!session.id) errors.push({ message: "Missing session ID", field: "id" });
+  if (!session.userId) errors.push({ message: "Missing user ID", field: "userId" });
+  if (!session.examConfig) errors.push({ message: "Missing exam configuration", field: "examConfig" });
+  if (!session.startTime) errors.push({ message: "Missing start time", field: "startTime" });
+  if (session.currentQuestionIndex < 0) errors.push({ message: "Invalid question index", field: "currentQuestionIndex" });
+  if (!session.answers) errors.push({ message: "Missing answers map", field: "answers" });
+  if (!session.bookmarkedQuestions) errors.push({ message: "Missing bookmarked questions", field: "bookmarkedQuestions" });
+  if (!session.status) errors.push({ message: "Missing session status", field: "status" });
+  
   return errors;
 }
 
